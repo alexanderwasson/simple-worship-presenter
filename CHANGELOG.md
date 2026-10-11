@@ -2,6 +2,29 @@
 
 All notable changes to Simple Worship Presenter are recorded here.
 
+## 0.3.3 — 2026-10-11
+
+### Added
+- **Self-updater that works without a git checkout.** The default update command assumed a git
+  repository, which fails on deployments made by copying or uploading files. `scripts/self-update.js`
+  detects the layout and uses `git pull` or downloads and installs the release archive accordingly.
+  It never touches `data/`, `uploads/`, `.env`, `node_modules` or `.git`, and reports clearly when
+  npm, git or tar are missing. `UPDATE_TARGET_DIR`, `UPDATE_REPO`, `UPDATE_REF` and
+  `UPDATE_ARCHIVE_URL` are available for mirrors and air-gapped installs.
+
+### Fixed
+- **Update failures were undiagnosable.** The dashboard showed only "Update command failed". It now
+  shows the exit code, signal, stderr and stdout, plus the exact command to run yourself.
+- `/api/admin/update` reports whether `git` and `npm` are on PATH, so a missing tool is visible
+  before pressing the button.
+- `tar` exiting non-zero after a successful extraction (for example `Cannot utime` when it cannot
+  restore a timestamp) no longer aborts the update; the installer judges by what landed on disk.
+
+### Security
+- The self-updater accepts `UPDATE_TARGET_DIR` so automated tests run against a throwaway directory.
+  Without that override, tests could run the updater against the real installation. Fixed here as
+  well as in the test harness, and the suite now proves it leaves user data byte-identical.
+
 ## 0.3.2 — 2026-10-11
 
 ### Fixed

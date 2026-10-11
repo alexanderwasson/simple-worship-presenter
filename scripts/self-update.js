@@ -100,19 +100,28 @@ async function main() {
       fail('Could not download the release: ' + err.message);
     }
 
+    let tarReportedError = false;
     try {
       execSync('tar -xzf "' + archive + '" -C "' + extractTo + '"', { stdio: 'inherit', timeout: 120000 });
     } catch {
-      fs.rmSync(tmp, { recursive: true, force: true });
-      fail('Could not unpack the release archive.');
+      // tar can exit non-zero after successfully extracting, for example when it
+      // cannot restore a timestamp ("Cannot utime"). Judge by what landed on disk.
+      tarReportedError = true;
     }
 
     // The archive extracts into a single top-level directory.
     const entries = fs.readdirSync(extractTo);
     const source = path.join(extractTo, entries[0]);
-    if (!fs.existsSync(source) || !fs.existsSync(path.join(source, 'package.json'))) {
+    if (!fs.existsSync(source)) {
+      fs.rmSync(tmp, { recursive: true, force: true });
+      fail('Could not unpack the release archive' + (tarReportedError ? ' (tar reported an error)' : '') + '.');
+    }
+    if (!fs.existsSync(path.join(source, 'package.json'))) {
       fs.rmSync(tmp, { recursive: true, force: true });
       fail('The release archive did not contain an application directory.');
+    }
+    if (tarReportedError) {
+      log('  note: tar reported an error, but the release extracted correctly');
     }
 
     log('  installing new files (data/, .env and node_modules/ preserved)');
