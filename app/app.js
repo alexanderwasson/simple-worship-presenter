@@ -1434,7 +1434,8 @@ async function wireUpdatePanel() {
       show(`<p><strong>Update finished.</strong> Exit code ${run.exit_code}.</p>
         ${run.stdout ? `<pre class="update-log">${esc(run.stdout)}</pre>` : ''}
         ${run.stderr ? `<pre class="update-log">${esc(run.stderr)}</pre>` : ''}
-        <p class="legal-note">Reload this page to pick up the new version.</p>`);
+        <p class="restart-notice"><strong>Restart required.</strong> The new code is installed but not running yet.
+        Restart the service — <code>pm2 restart simple-worship-presenter</code> — then reload this page.</p>`);
     } catch (e) {
       show(`<p class="legal-note">${esc(e.message)}</p>`);
     }

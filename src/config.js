@@ -43,6 +43,8 @@ function envOr(name, fallback) {
 
 // Where to look for a newer release, and how to install one. Both are defaults:
 // a self-hosted operator can point them elsewhere or turn them off entirely.
+// The command deliberately updates code only: restarting the service from
+// inside a request would terminate the process before the result is returned.
 const DEFAULT_UPDATE_CHECK_URL = 'https://api.github.com/repos/alexanderwasson/simple-worship-presenter/releases/latest';
 const DEFAULT_UPDATE_COMMAND = 'git pull --ff-only && npm ci --omit=dev';
 

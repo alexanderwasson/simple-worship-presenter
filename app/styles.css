@@ -209,3 +209,6 @@
 .update-output{padding:14px 20px 18px;border-top:1px solid var(--line);font-size:11.5px;line-height:1.7;color:#5d5c56}
 .update-log{margin:10px 0 0;padding:12px 14px;max-height:280px;overflow:auto;background:#20242b;color:#d9e2e8;border-radius:7px;font:10.5px/1.7 'DM Mono';white-space:pre-wrap;word-break:break-word}
 .inline-controls .unit-label{margin-right:4px}
+
+.restart-notice{margin:14px 0 0;padding:11px 13px;background:#fff6e9;border:1px solid #ecd7b4;border-radius:6px;color:#7a5f33;font-size:11px;line-height:1.6}
+.restart-notice code{background:#fff;border-radius:3px;padding:1px 5px;font-size:10.5px}
