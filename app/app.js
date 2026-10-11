@@ -1212,7 +1212,8 @@ function renderSettings() {
   $('#accountQuota').textContent = mb(s.used_bytes) + ' of ' + mb(s.quota_bytes);
   $('#settingsPanel').innerHTML = `
     <div class="setting"><div><strong>Display name</strong><small>Shown on this device</small></div><input id="setName" value="${esc(state.user ? state.user.name : '')}"></div>
-    <div class="setting"><div><strong>Storage</strong><small>${mb(s.used_bytes)} used of ${mb(s.quota_bytes)} included</small></div>
+    <div class="setting"><div><strong>Storage</strong><small>${mb(s.used_bytes)} used of ${mb(s.quota_bytes)} included</small>
+      ${s.storage ? `<span class="storage-breakdown">Media ${mb(s.storage.media)} · Presentations ${mb(s.storage.presentations)} · Songs ${mb(s.storage.songs)} · Plans ${mb(s.storage.programs)}</span>` : ''}</div>
       <div class="quota-bar"><i style="width:${pct}%"></i></div></div>
     <div class="setting"><div><strong>CCLI licence</strong><small>Shown in the presentation footer</small></div>
       <div class="inline-controls"><input id="setCcli" value="${esc(s.ccli_license || '')}" placeholder="e.g. 1234567"><button class="secondary-button" id="saveCcli">Save</button></div></div>

@@ -45,7 +45,11 @@ storage, and clears the session.
 ## Settings
 
 ### `GET /api/settings`
-Returns `{ instance, public_url, quota_bytes, used_bytes, allow_registration, ccli_license }`.
+Returns `{ instance, public_url, quota_bytes, used_bytes, storage, allow_registration, ccli_license }`.
+
+`storage` breaks usage into `{ media, files, presentations, songs, programs, total }`. Everything an
+account stores counts towards `used_bytes`, not just uploads: presentation slides, song lyrics,
+service plans and uploaded files all consume the quota.
 
 ### `PUT /api/settings`
 Body: `{ ccli_license? }`. Per-account settings.

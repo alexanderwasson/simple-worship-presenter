@@ -2,6 +2,33 @@
 
 All notable changes to Simple Worship Presenter are recorded here.
 
+## 0.3.2 — 2026-10-11
+
+### Fixed
+- **Stale client-side caching.** The application relied on hand-managed `?v=` query strings, so
+  browsers held on to old JavaScript and markup after an upgrade. The server now sets explicit
+  cache headers: API responses are `no-store`, versioned assets are `immutable`, and everything
+  else revalidates on every request. A missing version bump can no longer strand users on old code.
+- **Presentations, songs and service plans did not count towards storage.** Only uploads were
+  measured, so an account could store far more than its quota. Every category now counts.
+- **Update checks could report "up to date" wrongly.** Version parsing trimmed before stripping the
+  `v` prefix, so a release named `v 0.3.1` failed to parse and fell back to the raw tag. Also fixed
+  pre-release ordering: `0.3.2-rc1` now correctly sorts before `0.3.2`.
+
+### Changed
+- **Storage usage is recomputed from what is actually stored** rather than incremented as things
+  change, so it cannot drift when content is edited or when older records predate a change in
+  accounting rules. Existing accounts are corrected automatically the next time they change.
+- Settings now show a storage breakdown: media, presentations, songs and plans.
+- Version parsing moved into `src/version.js` so it can be unit tested.
+
+### Verified
+- Auto-update exercised end to end against the real release feed: the check reads the published
+  release notes and link, compares versions correctly, and `Run update` captures output, reports a
+  non-zero exit code on failure and persists the result for the dashboard.
+- 106 automated tests, including cache-control headers, storage accounting for every content type,
+  and version parsing against real release payload shapes.
+
 ## 0.3.1 — 2026-10-11
 
 The release candidate for publication. Everything below is new since 0.3.0.

@@ -102,9 +102,15 @@ module.exports = {
   allOwned(collection, userId) {
     return (data[collection] || []).filter(row => row.user_id === userId);
   },
-  insert(collection, row) { data[collection].push(row); return persist().then(() => row); },
+  insert(collection, row) {
+    data[collection].push(row);
+    // Content counts against the owner's storage quota, so keep usage in step.
+    if (row && row.user_id) module.exports.recomputeUsage(row.user_id);
+    return persist();
+  },
   remove(collection, userId, id) {
     data[collection] = (data[collection] || []).filter(r => !(r.id === id && r.user_id === userId));
+    module.exports.recomputeUsage(userId);
     return persist();
   },
 
@@ -113,6 +119,34 @@ module.exports = {
   setSetting(key, value) { data.settings[key] = value; return persist(); },
 
   // ---- storage accounting ----
+  // Usage is recomputed from what is actually stored rather than incremented,
+  // so it cannot drift when content is edited or when older records predate a
+  // change in accounting rules.
+  storageBreakdown(userId) {
+    const byteLength = value => Buffer.byteLength(typeof value === 'string' ? value : JSON.stringify(value ?? ''), 'utf8');
+    let media = 0, presentations = 0, songs = 0, programs = 0, files = 0;
+    for (const m of data.media) if (m.user_id === userId) media += Number(m.size) || 0;
+    for (const f of data.files) if (f.user_id === userId) files += Number(f.size) || 0;
+    for (const p of data.presentations) {
+      if (p.user_id !== userId) continue;
+      presentations += byteLength(p.title) + byteLength(p.slides_json || '');
+    }
+    for (const s of data.songs) {
+      if (s.user_id !== userId) continue;
+      songs += byteLength(s.title) + byteLength(s.author) + byteLength(s.artist) + byteLength(s.copyright) +
+        byteLength(s.tags) + byteLength(s.sections) + byteLength(s.theme);
+    }
+    for (const p of data.programs) {
+      if (p.user_id !== userId) continue;
+      programs += byteLength(p.title) + byteLength(p.notes) + byteLength(p.presentation_ids);
+    }
+    return { media, files, presentations, songs, programs, total: media + files + presentations + songs + programs };
+  },
+  recomputeUsage(userId) {
+    const u = module.exports.findUserById(userId);
+    if (u) u.used_bytes = module.exports.storageBreakdown(userId).total;
+    return persist();
+  },
   addUsage(userId, bytes) {
     const u = module.exports.findUserById(userId);
     if (u) u.used_bytes = Math.max(0, (u.used_bytes || 0) + bytes);

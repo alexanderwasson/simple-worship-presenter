@@ -26,6 +26,13 @@ app.use(cookieParser());
 app.use((req, res, next) => {
   const start = Date.now();
   res.on('finish', () => log.request(req.method, req.path, res.statusCode, Date.now() - start));
+  // Caching policy:
+  //   API          never cached — account data must always be current
+  //   ?v= assets   immutable — the version changes when the content changes
+  //   everything   revalidate on every request — fixes stale client bundles
+  if (req.path.startsWith('/api/')) res.setHeader('Cache-Control', 'no-store');
+  else if (req.query && req.query.v) res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+  else res.setHeader('Cache-Control', 'no-cache, must-revalidate');
   next();
 });
 

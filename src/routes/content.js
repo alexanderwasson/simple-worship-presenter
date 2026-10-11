@@ -56,11 +56,10 @@ function safeName(name) {
   return String(name || 'file').replace(/[^\w.\- ]+/g, '_').slice(0, 120);
 }
 
-async function consumeQuota(user, bytes) {
-  if (user.used_bytes + bytes > user.quota_bytes) return false;
-  user.used_bytes += bytes;
-  await db.persist();
-  return true;
+// Quota is checked against what the account actually stores, and usage is
+// recomputed after every mutation so it can never drift.
+async function withinQuota(user, incomingBytes = 0) {
+  return db.storageBreakdown(user.id).total + incomingBytes <= user.quota_bytes;
 }
 
 // ---- media --------------------------------------------------------------
@@ -76,7 +75,7 @@ router.post('/media', auth.requireAuth, writeLimiter(), upload.single('file'), a
     fs.unlinkSync(req.file.path);
     return jsonError(res, 415, 'Unsupported or unrecognised file type. Upload PNG, JPG, GIF, WebP, MP4, MP3, WAV or OGG.');
   }
-  if (!(await consumeQuota(req.user, req.file.size))) {
+  if (!(await withinQuota(req.user, req.file.size))) {
     fs.unlinkSync(req.file.path);
     return jsonError(res, 413, 'Storage quota exceeded');
   }
@@ -108,7 +107,6 @@ router.delete('/media/:id', auth.requireAuth, async (req, res) => {
   if (!item) return jsonError(res, 404, 'Media not found');
   try { fs.unlinkSync(path.join(UPLOAD_DIR, item.stored_name)); } catch { /* already gone */ }
   await db.remove('media', req.user.id, item.id);
-  await db.reclaimUsage(req.user.id, item.size);
   res.status(204).end();
 });
 
@@ -154,7 +152,7 @@ router.put('/songs/:id', auth.requireAuth, writeLimiter(), async (req, res) => {
   const { song, error } = normaliseSong(req.body);
   if (error) return jsonError(res, 400, error);
   Object.assign(row, song, { updated_at: db.now() });
-  await db.persist();
+  await db.recomputeUsage(req.user.id);
   res.json({ song: row });
 });
 
@@ -242,7 +240,7 @@ router.put('/presentations/:id', auth.requireAuth, writeLimiter(), async (req, r
   if (req.body.title !== undefined) row.title = String(req.body.title).slice(0, 200);
   if (req.body.slides !== undefined) row.slides_json = JSON.stringify(normaliseSlides(req.body.slides));
   row.updated_at = db.now();
-  await db.persist();
+  await db.recomputeUsage(req.user.id);
   res.json({ ok: true });
 });
 
@@ -295,7 +293,7 @@ router.put('/programs/:id', auth.requireAuth, writeLimiter(), async (req, res) =
   if (req.body.date !== undefined) row.date = String(req.body.date).slice(0, 20);
   if (req.body.notes !== undefined) row.notes = String(req.body.notes).slice(0, 2000);
   if (Array.isArray(req.body.presentation_ids)) row.presentation_ids = req.body.presentation_ids.slice(0, 200);
-  await db.persist();
+  await db.recomputeUsage(req.user.id);
   res.json({ program: row });
 });
 
@@ -321,7 +319,7 @@ router.post('/import', auth.requireAuth, writeLimiter(), upload.single('file'), 
   const detected = sniff(buffer);
   const size = req.file.size;
   if (detected) {
-    if (!(await consumeQuota(req.user, size))) {
+    if (!(await withinQuota(req.user, size))) {
       fs.unlinkSync(req.file.path);
       return jsonError(res, 413, 'Storage quota exceeded');
     }
@@ -339,7 +337,7 @@ router.post('/import', auth.requireAuth, writeLimiter(), upload.single('file'), 
   if (/[\u0000-\u0008]/.test(text.slice(0, 1000))) {
     return jsonError(res, 415, 'This file is not readable text. Export it as text or XML first.');
   }
-  if (!(await consumeQuota(req.user, size))) return jsonError(res, 413, 'Storage quota exceeded');
+  if (!(await withinQuota(req.user, size))) return jsonError(res, 413, 'Storage quota exceeded');
   const record = {
     id: db.newId(), user_id: req.user.id, original_name: safeName(req.file.originalname),
     stored_name: null, mime: 'text/plain', kind: 'text', size, created_at: db.now()
@@ -355,6 +353,7 @@ router.get('/settings', auth.requireAuth, (req, res) => {
     public_url: config.publicUrl,
     quota_bytes: req.user.quota_bytes,
     used_bytes: req.user.used_bytes,
+    storage: db.storageBreakdown(req.user.id),
     allow_registration: config.allowRegistration,
     ccli_license: db.getSetting('ccli:' + req.user.id, '')
   });
@@ -507,16 +506,7 @@ router.delete('/admin/users/:id', auth.requireAdmin, writeLimiter(), async (req,
 // ---- admin: updates and backups -----------------------------------------
 // Self-update is opt-in through UPDATE_COMMAND. Nothing runs unless the
 // operator has explicitly configured it, and the command is never user input.
-function compareVersions(a, b) {
-  const pa = String(a).replace(/^v/, '').split(/[.\-+]/).map(Number);
-  const pb = String(b).replace(/^v/, '').split(/[.\-+]/).map(Number);
-  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
-    const x = pa[i] || 0, y = pb[i] || 0;
-    if (x > y) return 1;
-    if (x < y) return -1;
-  }
-  return 0;
-}
+const { compareVersions, pickVersion } = require('../version');
 
 const APP_ROOT = path.join(__dirname, '..', '..');
 const pkg = require(path.join(APP_ROOT, 'package.json'));
@@ -546,7 +536,7 @@ router.post('/admin/update/check', auth.requireAdmin, writeLimiter(), async (req
     const response = await fetch(config.updateCheckUrl, { signal: AbortSignal.timeout(15000) });
     if (!response.ok) throw new Error('update source returned HTTP ' + response.status);
     const info = await response.json();
-    const latest = String(info.version || info.tag_name || '').replace(/^v/, '');
+    const latest = pickVersion(info);
     const result = {
       checked_at: db.now(),
       current_version: pkg.version,

@@ -1,4 +1,4 @@
-# Simple Worship Presenter
+﻿# Simple Worship Presenter
 
 Free, browser-based worship presentation software. Build service plans, organise songs and
 media, and project lyrics to a second screen — on our hosted service or on your own server.
@@ -13,6 +13,7 @@ media, and project lyrics to a second screen — on our hosted service or on you
   launch the plan straight into presenter mode.
 - **Song library** — store lyrics as labelled sections (Verse, Chorus, Bridge, custom), reorder
   them, and generate correctly spaced slides with your chosen line count.
+- **Storage quotas** — everything an account stores counts: presentations, songs, service plans and uploads are measured and enforced server-side.
 - **Media library** — upload images, video and audio, and use any image as a slide or
   presentation background.
 - **Presentation editor** — undo/redo, duplicate and reorder slides, 16:9 and 4:3 canvases,
