@@ -46,7 +46,7 @@ function envOr(name, fallback) {
 // The command deliberately updates code only: restarting the service from
 // inside a request would terminate the process before the result is returned.
 const DEFAULT_UPDATE_CHECK_URL = 'https://api.github.com/repos/alexanderwasson/simple-worship-presenter/releases/latest';
-const DEFAULT_UPDATE_COMMAND = 'git pull --ff-only && npm ci --omit=dev';
+const DEFAULT_UPDATE_COMMAND = 'node scripts/self-update.js';
 
 const config = {
   nodeEnv,

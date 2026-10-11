@@ -197,7 +197,7 @@ test('instance maintenance', async t => {
     assert.equal(res.body.check_configured, true, 'update checking should be on by default');
     assert.equal(res.body.command_configured, true, 'the update command should be set by default');
     assert.match(res.body.check_url, /github\.com/, 'default update source is the upstream release feed');
-    assert.match(res.body.update_command, /git pull/, 'default update command installs from git');
+    assert.match(res.body.update_command, /self-update\.js/, 'default update command uses the bundled updater');
   });
 
   await t.test('either part can be turned off by setting it empty', async () => {
