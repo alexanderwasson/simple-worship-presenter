@@ -530,6 +530,8 @@ router.get('/admin/update', auth.requireAdmin, (req, res) => {
     data_dir: config.dataDir,
     check_configured: Boolean(config.updateCheckUrl),
     command_configured: Boolean(config.updateCommand),
+    check_url: config.updateCheckUrl || null,
+    update_command: config.updateCommand || null,
     last_check: db.getSetting('update:last_check', null),
     last_run: db.getSetting('update:last_run', null),
     stats: db.stats()

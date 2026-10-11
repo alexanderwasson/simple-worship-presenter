@@ -189,31 +189,50 @@ test('instance maintenance', async t => {
   t.after(() => server.stop());
   const admin = await makeAdmin(server);
 
-  await t.test('an admin can read version and maintenance information', async () => {
+  await t.test('self-update is enabled by default', async () => {
     const res = await server.api('/admin/update', {}, admin.cookie);
     assert.equal(res.status, 200);
     assert.equal(res.body.current_version, require('../package.json').version);
     assert.equal(res.body.schema_version, 4);
-    assert.equal(res.body.check_configured, false);
-    assert.equal(res.body.command_configured, false);
+    assert.equal(res.body.check_configured, true, 'update checking should be on by default');
+    assert.equal(res.body.command_configured, true, 'the update command should be set by default');
+    assert.match(res.body.check_url, /github\.com/, 'default update source is the upstream release feed');
+    assert.match(res.body.update_command, /git pull/, 'default update command installs from git');
   });
 
-  await t.test('a non-admin cannot read it', async () => {
+  await t.test('either part can be turned off by setting it empty', async () => {
+    const disabled = await startServer({ UPDATE_CHECK_URL: '', UPDATE_COMMAND: '' });
+    t.after(() => disabled.stop());
+    const setup = await disabled.api('/setup/admin', {
+      method: 'POST',
+      body: { name: 'Admin', email: 'a@example.com', password: 'a-valid-password-here' }
+    });
+    const cookie = disabled.cookieFrom(setup);
+    const res = await disabled.api('/admin/update', {}, cookie);
+    assert.equal(res.body.check_configured, false);
+    assert.equal(res.body.command_configured, false);
+
+    const check = await disabled.api('/admin/update/check', { method: 'POST' }, cookie);
+    assert.equal(check.status, 400);
+    assert.match(check.body.error, /UPDATE_CHECK_URL/);
+
+    const run = await disabled.api('/admin/update/run', { method: 'POST', body: { confirm: true } }, cookie);
+    assert.equal(run.status, 400);
+    assert.match(run.body.error, /UPDATE_COMMAND/);
+  });
+
+  await t.test('a non-admin cannot read maintenance information', async () => {
     const user = await signIn(server, { email: 'plain@example.com' });
     const res = await server.api('/admin/update', {}, user.cookie);
     assert.equal(res.status, 403);
   });
 
-  await t.test('update checks refuse to run when no source is configured', async () => {
-    const res = await server.api('/admin/update/check', { method: 'POST' }, admin.cookie);
-    assert.equal(res.status, 400);
-    assert.match(res.body.error, /UPDATE_CHECK_URL/);
-  });
-
-  await t.test('self-update refuses to run when no command is configured', async () => {
-    const res = await server.api('/admin/update/run', { method: 'POST', body: { confirm: true } }, admin.cookie);
-    assert.equal(res.status, 400);
-    assert.match(res.body.error, /UPDATE_COMMAND/);
+  await t.test('a non-admin cannot trigger an update', async () => {
+    const user = await signIn(server, { email: 'meddler@example.com' });
+    const check = await server.api('/admin/update/check', { method: 'POST' }, user.cookie);
+    assert.equal(check.status, 403);
+    const run = await server.api('/admin/update/run', { method: 'POST', body: { confirm: true } }, user.cookie);
+    assert.equal(run.status, 403);
   });
 
   await t.test('self-update requires an explicit confirmation', async () => {
@@ -233,6 +252,19 @@ test('instance maintenance', async t => {
     assert.equal(confirmed.status, 200);
     assert.equal(confirmed.body.run.ok, true);
     assert.match(confirmed.body.run.stdout, /should-not-run/);
+  });
+
+  await t.test('a failing update command is reported, not hidden', async () => {
+    const failing = await startServer({ UPDATE_COMMAND: 'exit 3' });
+    t.after(() => failing.stop());
+    const setup = await failing.api('/setup/admin', {
+      method: 'POST',
+      body: { name: 'Admin', email: 'b@example.com', password: 'a-valid-password-here' }
+    });
+    const cookie = failing.cookieFrom(setup);
+    const res = await failing.api('/admin/update/run', { method: 'POST', body: { confirm: true } }, cookie);
+    assert.equal(res.status, 500);
+    assert.equal(res.body.run.exit_code, 3);
   });
 
   await t.test('the database backup can be downloaded by an admin only', async () => {

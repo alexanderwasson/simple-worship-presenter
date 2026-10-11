@@ -36,6 +36,16 @@ const nodeEnv = process.env.NODE_ENV || 'development';
 const isProduction = nodeEnv === 'production';
 const defaultSecret = 'development-only-change-me';
 
+// An unset variable falls back to the default; an explicitly empty one disables.
+function envOr(name, fallback) {
+  return process.env[name] === undefined ? fallback : process.env[name];
+}
+
+// Where to look for a newer release, and how to install one. Both are defaults:
+// a self-hosted operator can point them elsewhere or turn them off entirely.
+const DEFAULT_UPDATE_CHECK_URL = 'https://api.github.com/repos/alexanderwasson/simple-worship-presenter/releases/latest';
+const DEFAULT_UPDATE_COMMAND = 'git pull --ff-only && npm ci --omit=dev';
+
 const config = {
   nodeEnv,
   isProduction,
@@ -53,10 +63,12 @@ const config = {
   rateLimitMaxAuth: num('RATE_LIMIT_MAX_AUTH', 10, { min: 1, integer: true }),
   rateLimitMaxWrite: num('RATE_LIMIT_MAX_WRITE', 240, { min: 1, integer: true }),
 
-  // Optional self-update support. Both are disabled unless the operator opts in,
-  // so a fresh install can never run arbitrary commands or call home.
-  updateCheckUrl: process.env.UPDATE_CHECK_URL || '',
-  updateCommand: process.env.UPDATE_COMMAND || '',
+  // Self-update is enabled by default against the official upstream release feed.
+  // Both are read on demand: nothing is contacted and nothing runs until an
+  // administrator asks for it. Set either variable to an empty string to turn
+  // that part off on your instance.
+  updateCheckUrl: envOr('UPDATE_CHECK_URL', DEFAULT_UPDATE_CHECK_URL),
+  updateCommand: envOr('UPDATE_COMMAND', DEFAULT_UPDATE_COMMAND),
   updateTimeoutMs: num('UPDATE_TIMEOUT_MS', 600000, { min: 1000, integer: true })
 };
 

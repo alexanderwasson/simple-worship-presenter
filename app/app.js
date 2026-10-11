@@ -1399,11 +1399,11 @@ async function wireUpdatePanel() {
     $('#verCurrent').textContent = 'v' + info.current_version;
     $('#verRuntime').textContent = `Node ${info.node_version} · schema ${info.schema_version} · up ${Math.round(info.uptime_seconds / 60)}m`;
     $('#updateCheckHint').textContent = info.check_configured
-      ? 'Compares this install against your configured update source'
-      : 'Not configured — set UPDATE_CHECK_URL in .env';
+      ? 'Source: ' + info.check_url
+      : 'Disabled — set UPDATE_CHECK_URL in .env to enable';
     $('#updateRunHint').textContent = info.command_configured
-      ? 'Runs the operator-configured update command'
-      : 'Not configured — set UPDATE_COMMAND in .env';
+      ? 'Command: ' + info.update_command
+      : 'Disabled — set UPDATE_COMMAND in .env to enable';
     $('#checkUpdates').disabled = !info.check_configured;
     $('#runUpdate').disabled = !info.command_configured;
   };
