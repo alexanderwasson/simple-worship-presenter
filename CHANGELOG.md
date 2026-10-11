@@ -2,6 +2,12 @@
 
 All notable changes to Simple Worship Presenter are recorded here.
 
+## Unreleased
+
+### Changed
+- The dashboard now states whether an update setting came from `.env` or is the built-in default,
+  so an override left over from troubleshooting is immediately visible.
+
 ## 0.3.3 — 2026-10-11
 
 ### Added

@@ -40,6 +40,9 @@ const defaultSecret = 'development-only-change-me';
 function envOr(name, fallback) {
   return process.env[name] === undefined ? fallback : process.env[name];
 }
+function envSource(name) {
+  return process.env[name] === undefined ? 'default' : 'environment';
+}
 
 // Where to look for a newer release, and how to install one. Both are defaults:
 // a self-hosted operator can point them elsewhere or turn them off entirely.
@@ -71,6 +74,9 @@ const config = {
   // that part off on your instance.
   updateCheckUrl: envOr('UPDATE_CHECK_URL', DEFAULT_UPDATE_CHECK_URL),
   updateCommand: envOr('UPDATE_COMMAND', DEFAULT_UPDATE_COMMAND),
+  // Where each value came from, so an override in .env is never a mystery.
+  updateCheckUrlSource: envSource('UPDATE_CHECK_URL'),
+  updateCommandSource: envSource('UPDATE_COMMAND'),
   updateTimeoutMs: num('UPDATE_TIMEOUT_MS', 600000, { min: 1000, integer: true })
 };
 

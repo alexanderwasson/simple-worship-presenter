@@ -1409,7 +1409,7 @@ async function wireUpdatePanel() {
       ? 'Source: ' + info.check_url
       : 'Disabled — set UPDATE_CHECK_URL in .env to enable';
     let runHint = info.command_configured
-      ? 'Command: ' + info.update_command
+      ? 'Command: ' + info.update_command + (info.update_command_source === 'environment' ? '  (set in .env)' : '  (built-in default)')
       : 'Disabled — set UPDATE_COMMAND in .env to enable';
     const missing = Object.entries(info.commands || {}).filter(([, ok]) => !ok).map(([name]) => name);
     if (missing.length) {

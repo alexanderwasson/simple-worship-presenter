@@ -261,6 +261,21 @@ test('instance maintenance', async t => {
     assert.equal(typeof res.body.commands.npm, 'boolean', 'npm availability must be reported');
   });
 
+  await t.test('it is clear whether an update setting came from .env or the default', async () => {
+    const builtIn = await server.api('/admin/update', {}, admin.cookie);
+    assert.equal(builtIn.body.update_command_source, 'default');
+
+    const overridden = await startServer({ UPDATE_COMMAND: 'echo custom' });
+    t.after(() => overridden.stop());
+    const setup = await overridden.api('/setup/admin', {
+      method: 'POST',
+      body: { name: 'Admin', email: 'src@example.com', password: 'a-valid-password-here' }
+    });
+    const res = await overridden.api('/admin/update', {}, overridden.cookieFrom(setup));
+    assert.equal(res.body.update_command_source, 'environment');
+    assert.equal(res.body.update_command, 'echo custom');
+  });
+
   await t.test('a failing update command is reported, not hidden', async () => {
     const failing = await startServer({ UPDATE_COMMAND: 'exit 3' });
     t.after(() => failing.stop());

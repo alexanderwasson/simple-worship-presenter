@@ -538,6 +538,8 @@ router.get('/admin/update', auth.requireAdmin, (req, res) => {
     command_configured: Boolean(config.updateCommand),
     check_url: config.updateCheckUrl || null,
     update_command: config.updateCommand || null,
+    check_url_source: config.updateCheckUrlSource,
+    update_command_source: config.updateCommandSource,
     commands: commandStatus(),
     last_check: db.getSetting('update:last_check', null),
     last_run: db.getSetting('update:last_run', null),
