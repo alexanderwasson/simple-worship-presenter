@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -119,6 +119,21 @@
   </ul>
   <p>Formatting is saved with the slide and travels to the audience display automatically. Animations replay each time a slide is shown, and are disabled automatically for anyone with reduced motion enabled at the operating system level.</p>
 
+  <h2>Mobile remote</h2>
+  <p>Control the service from a phone without touching the presentation computer.</p>
+  <ul>
+    <li>On the presentation computer choose <strong>Tools &rarr; Connect Mobile Remote</strong>.</li>
+    <li>Scan the QR code with the phone camera, or open the shown link and type the pairing code.</li>
+    <li>The phone shows the current and next slide, and large Previous / Next buttons.</li>
+    <li>Tap any slide in the list to jump straight to it.</li>
+    <li><strong>Black screen</strong> blanks the projector without losing your place; <strong>Restore output</strong> brings it back.</li>
+    <li>Several phones can be paired at once, and each can be disconnected individually from the same dialog.</li>
+  </ul>
+  <p>Pairing codes expire after a few minutes and can be used once. The QR code contains only that
+  short code &mdash; never your account credentials. Access can be revoked at any time.</p>
+  <p>If the site is served through a reverse proxy, the proxy must allow WebSocket upgrades. See
+  <code>DEPLOYMENT.md</code> for the nginx configuration. Where WebSockets are blocked the remote
+  falls back to ordinary HTTPS automatically.</p>
   <h2>Keyboard shortcuts</h2>
   <table>
     <tr><th>Shortcut</th><th>Effect</th></tr>

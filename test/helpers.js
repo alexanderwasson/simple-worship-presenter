@@ -27,6 +27,8 @@ async function startServer(extraEnv = {}) {
       // overrides these to prove the limiter works.
       RATE_LIMIT_MAX_AUTH: '10000',
       RATE_LIMIT_MAX_WRITE: '100000',
+      RATE_LIMIT_MAX_PAIRING: '10000',
+      RATE_LIMIT_MAX_REMOTE_COMMAND: '100000',
       ...extraEnv
     },
     stdio: ['ignore', 'pipe', 'pipe']

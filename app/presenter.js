@@ -149,5 +149,50 @@ window.addEventListener('keydown', e => {
 // Keep text scaling correct when the display is resized or moved to a projector.
 window.addEventListener('resize', () => { if (last) receive({ ...last, type: 'slide' }); });
 
+/* ---- authoritative server state -----------------------------------------
+   The same state a paired phone drives. BroadcastChannel still gives instant
+   same-device feedback, but the server wins whenever a remote is involved. */
+function connectLive() {
+  if (!window.WebSocket) return;
+  let socket;
+  try {
+    const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    socket = new WebSocket(proto + '//' + location.host + '/api/remote/ws');
+  } catch {
+    return;
+  }
+
+  socket.onopen = () => {
+    socket.send(JSON.stringify({ type: 'auth', kind: 'display' }));
+    setStatus(true);
+  };
+
+  socket.onmessage = event => {
+    let message;
+    try { message = JSON.parse(event.data); } catch { return; }
+    if (message.type !== 'state') return;
+
+    if (message.state && message.state.blank) {
+      stage.classList.add('blank');
+      last = message.slide;
+      return;
+    }
+    stage.classList.remove('blank');
+    if (message.slide) receive({ ...message.slide, type: 'slide' });
+    if (message.state && typeof message.state.count === 'number') {
+      total = message.state.count;
+      index = message.state.index;
+      countEl.textContent = total ? String(index + 1).padStart(2, '0') + ' / ' + String(total).padStart(2, '0') : '—';
+    }
+  };
+
+  socket.onclose = () => {
+    setStatus(false);
+    setTimeout(connectLive, 3000);
+  };
+  socket.onerror = () => { };
+}
+connectLive();
+
 // Announce that this display exists so the operator can see it is live.
 setTimeout(() => setStatus(!!last), 1500);

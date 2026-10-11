@@ -67,6 +67,8 @@ const config = {
   rateLimitWindowMs: num('RATE_LIMIT_WINDOW_MS', 60000, { min: 1000, integer: true }),
   rateLimitMaxAuth: num('RATE_LIMIT_MAX_AUTH', 10, { min: 1, integer: true }),
   rateLimitMaxWrite: num('RATE_LIMIT_MAX_WRITE', 240, { min: 1, integer: true }),
+  rateLimitMaxPairing: num('RATE_LIMIT_MAX_PAIRING', 12, { min: 1, integer: true }),
+  rateLimitMaxRemoteCommand: num('RATE_LIMIT_MAX_REMOTE_COMMAND', 300, { min: 1, integer: true }),
 
   // Self-update is enabled by default against the official upstream release feed.
   // Both are read on demand: nothing is contacted and nothing runs until an

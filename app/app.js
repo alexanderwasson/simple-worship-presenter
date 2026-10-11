@@ -1,4 +1,4 @@
-﻿'use strict';
+'use strict';
 /* Simple Worship Presenter — application client.
    All user-supplied text is escaped before it reaches innerHTML. */
 const $ = (s, r = document) => r.querySelector(s);
@@ -1157,6 +1157,184 @@ async function saveDeck() {
   }
 }
 
+/* ---------------------------------------------- live link (server state) */
+// The workspace, the audience display and any paired phones all converge on the
+// same state on the server. Locally we still use BroadcastChannel for instant
+// same-device feedback, but the server is authoritative when a remote is in use.
+const LiveLink = {
+  socket: null,
+  ready: false,
+  publishTimer: null,
+  lastSent: '',
+
+  payload() {
+    return {
+      slides: state.deck ? state.deck.slides : [],
+      title: state.deck ? state.deck.title : '',
+      footer: state.settings.ccli_license ? 'CCLI ' + state.settings.ccli_license : (config.instanceName || 'Simple Worship Presenter'),
+      presentation_id: state.deck ? state.deck.id : null,
+      index: state.active,
+      blank: state.blanked
+    };
+  },
+
+  connect() {
+    if (this.socket && this.socket.readyState <= 1) return;
+    try {
+      const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+      this.socket = new WebSocket(proto + '//' + location.host + '/api/remote/ws');
+    } catch { return; }
+
+    this.socket.onopen = () => {
+      this.ready = true;
+      this.socket.send(JSON.stringify({ type: 'auth', kind: 'display' }));
+      this.publish();
+    };
+    this.socket.onmessage = event => {
+      let message;
+      try { message = JSON.parse(event.data); } catch { return; }
+      if (message.type === 'state') this.adopt(message.state, message.slide);
+    };
+    this.socket.onclose = () => {
+      this.ready = false;
+      // Reconnect quietly; the workspace keeps working locally meanwhile.
+      setTimeout(() => this.connect(), 2500);
+    };
+    this.socket.onerror = () => { };
+  },
+
+  // Send the authoritative view of what this workspace is showing.
+  publish() {
+    const body = this.payload();
+    const serialised = JSON.stringify(body);
+    if (serialised === this.lastSent) return;
+    this.lastSent = serialised;
+
+    if (this.socket && this.socket.readyState === 1) {
+      try { this.socket.send(JSON.stringify({ type: 'publish', ...body })); return; } catch { }
+    }
+    clearTimeout(this.publishTimer);
+    this.publishTimer = setTimeout(() => {
+      fetch('/api/remote/state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: serialised
+      }).catch(() => { });
+    }, 120);
+  },
+
+  // A remote moved the service on: follow it rather than fighting it.
+  adopt(next, slide) {
+    if (!next) return;
+    if (typeof next.blank === 'boolean' && next.blank !== state.blanked) {
+      state.blanked = next.blank;
+    }
+    if (state.deck && typeof next.index === 'number' && next.index !== state.active) {
+      state.active = Math.max(0, Math.min(next.index, state.deck.slides.length - 1));
+      renderEditor();
+    }
+    if (next.title && state.deck && next.title !== state.deck.title) {
+      // Titles are owned by the editor; ignore echoes of our own value.
+    }
+    status(next.blank ? 'Output blanked' : 'Slide ' + pad(next.index + 1) + ' live');
+  },
+
+  command(action, index) {
+    const message = { type: 'command', action };
+    if (action === 'goto') message.index = index;
+    if (this.socket && this.socket.readyState === 1) {
+      this.socket.send(JSON.stringify(message));
+    } else {
+      fetch('/api/remote/command', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, index })
+      }).catch(() => { });
+    }
+  }
+};
+
+// ---- mobile remote dialog -----------------------------------------------
+async function openRemoteDialog() {
+  modal(`
+    <h2>Connect Mobile Remote</h2>
+    <p>Open <strong>${esc(location.origin + '/remote')}</strong> on your phone, then scan the code or type it in.</p>
+    <div class="pairing-panel">
+      <div class="pairing-qr"><img id="pairQr" alt="Pairing code QR" hidden><div id="pairQrLoading" class="legal-note">Generating code…</div></div>
+      <div class="pairing-code">
+        <span class="legal-note">Pairing code</span>
+        <strong id="pairCode">————</strong>
+        <small id="pairExpiry">expires shortly</small>
+        <button class="secondary-button" id="pairRefresh">New code</button>
+      </div>
+    </div>
+    <h3>Connected devices</h3>
+    <div id="remoteDevices" class="device-list"><p class="legal-note">No devices connected.</p></div>
+    <div class="modal-actions">
+      <button class="secondary-button danger" id="revokeAll">Disconnect all</button>
+      <button class="secondary-button" id="closePairing">Done</button>
+    </div>
+    <p class="legal-note">The QR code contains only a short-lived pairing code, never an account token. Access can be revoked here at any time.</p>
+  `);
+
+  $('#closePairing').onclick = closeModal;
+  $('#pairRefresh').onclick = createPairing;
+  $('#revokeAll').onclick = async () => {
+    await api('/remote/devices', { method: 'DELETE' }).catch(() => { });
+    loadDevices();
+    toast('All remote devices disconnected');
+  };
+
+  await createPairing();
+  await loadDevices();
+}
+
+async function createPairing() {
+  const loading = $('#pairQrLoading');
+  const qr = $('#pairQr');
+  if (loading) loading.hidden = false;
+  if (qr) qr.hidden = true;
+  try {
+    const data = await api('/remote/pairing', { method: 'POST', body: {} });
+    $('#pairCode').textContent = data.code;
+    $('#pairExpiry').textContent = 'expires in ' + Math.round(data.expires_in_seconds / 60) + ' minutes';
+    if (data.qr) {
+      qr.src = data.qr;
+      qr.hidden = false;
+      loading.hidden = true;
+    } else if (loading) {
+      loading.textContent = 'Scan unavailable — type the code instead.';
+    }
+  } catch (e) {
+    if (loading) loading.textContent = e.message;
+  }
+}
+
+async function loadDevices() {
+  const host = $('#remoteDevices');
+  if (!host) return;
+  try {
+    const data = await api('/remote/devices');
+    if (!data.remotes.length) {
+      host.innerHTML = '<p class="legal-note">No devices connected.</p>';
+      return;
+    }
+    host.innerHTML = data.remotes.map(r => `
+      <div class="device-row">
+        <span class="dot-on"></span>
+        <div><strong>Paired device</strong><small>last seen ${relative(r.last_seen)}</small></div>
+        <button class="secondary-button danger" data-revoke="${esc(r.id)}">Revoke</button>
+      </div>`).join('');
+    $$('[data-revoke]', host).forEach(b => b.onclick = async () => {
+      await api('/remote/devices/' + b.dataset.revoke, { method: 'DELETE' }).catch(() => { });
+      loadDevices();
+      toast('Device disconnected');
+    });
+  } catch (e) {
+    host.innerHTML = `<p class="legal-note">${esc(e.message)}</p>`;
+  }
+}
+
 /* ----------------------------------------------------------- presenter */
 function payload() {
   const slide = state.deck ? state.deck.slides[state.active] : '';
@@ -1177,6 +1355,8 @@ function broadcast() {
   const msg = payload();
   try { localStorage.setItem('swp-live', JSON.stringify(msg)); } catch { /* quota */ }
   bc.postMessage(msg);
+  // The server holds the authoritative state so a phone can drive it too.
+  LiveLink.publish();
 }
 
 function openPresenter() {
@@ -1191,6 +1371,7 @@ function toggleBlank() {
   state.blanked = !state.blanked;
   bc.postMessage({ type: state.blanked ? 'blank' : 'unblank' });
   try { localStorage.setItem('swp-live-command', JSON.stringify({ type: state.blanked ? 'blank' : 'unblank', at: Date.now() })); } catch { }
+  LiveLink.publish();
   toast(state.blanked ? 'Audience display blanked' : 'Audience display restored');
 }
 
@@ -1509,6 +1690,7 @@ const MENUS = {
     ['Media library', () => showView('media')]
   ],
   Tools: [
+    ['Connect Mobile Remote', () => openRemoteDialog()],
     ['Song library', () => showView('songs')],
     ['New service plan', () => newProgram()],
     ['Blank audience display', () => toggleBlank()]
@@ -1740,3 +1922,5 @@ const config = { instanceName: 'Simple Worship Presenter' };
 wire();
 mountMenus();
 boot();
+// Keep the server's live state in step and follow any remote that takes over.
+LiveLink.connect();

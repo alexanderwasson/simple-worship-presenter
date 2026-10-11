@@ -111,6 +111,47 @@ presentations it references.
 Multipart `file`. Media is stored in the media library; readable text is returned as `{ text }`
 for conversion into slides. Kept for backward compatibility.
 
+## Mobile remote
+
+A paired phone controls the live presentation. The server owns the presentation state; phones and
+displays send commands and follow the broadcast state.
+
+### `POST /api/remote/pairing` (session)
+Creates a short-lived, single-use pairing code and a locally generated QR image. The QR and link
+contain only the code — never an account or session token. Body: `{ scope? }` to restrict which
+controls the paired device receives.
+
+### `GET /api/remote/state` · `POST /api/remote/state` (session)
+Read or publish the authoritative presentation state. Publishing is reserved for the presenter
+workspace; a phone cannot impersonate it.
+
+### `GET /api/remote/devices` · `DELETE /api/remote/devices/:id` · `DELETE /api/remote/devices`
+List, revoke one, or revoke all paired remotes. Revocation takes effect immediately.
+
+### `POST /api/remote/pair` (rate limited)
+Body: `{ code }`. Exchanges a pairing code for a scoped remote token. Codes are consumed before a
+token is issued, so a replay cannot pair twice.
+
+### `GET /api/remote/me` (remote token)
+Current state for a paired device. Identify with `Authorization: Bearer <token>`.
+
+### `POST /api/remote/command` (remote token **or** session)
+Body: `{ action, index? }` where action is `next`, `previous`, `goto`, `blank` or `unblank`.
+`goto` requires an integer `index` within range. Unknown actions return `400`; a known action the
+device does not hold returns `403`. Ownership always comes from the credential.
+
+### WebSocket `GET /api/remote/ws`
+Authenticate within 5 seconds of connecting:
+
+```json
+{ "type": "auth", "kind": "display" }
+{ "type": "auth", "kind": "remote", "token": "…" }
+```
+
+Clients send `{ "type": "command", "action": "next" }` or `{ "type": "publish", ... }`. The server
+replies with `{ "type": "state", "state": …, "slide": …, "allowed": […] }`. Authentication is a
+message rather than a URL parameter so tokens stay out of proxy logs.
+
 ## Admin
 
 All admin routes require the `admin` role and return `403` otherwise.

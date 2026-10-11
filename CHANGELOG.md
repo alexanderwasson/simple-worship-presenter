@@ -1,6 +1,51 @@
-﻿# Changelog
+# Changelog
 
 All notable changes to Simple Worship Presenter are recorded here.
+
+## 0.3.4 — 2026-10-11
+
+### Added
+- **Mobile remote control.** A phone can drive the live presentation from `/remote`. It pairs by
+  scanning a QR code or typing a short code, then offers previous/next, current and next slide
+  previews, a tap-to-jump slide list, black screen, restore output, and the current item and slide
+  position. Buttons are sized for one-handed use during a service.
+- **Server-authoritative live state.** The workspace, audience display and every paired phone now
+  converge on one state held by the server instead of only a same-device BroadcastChannel. A remote
+  command updates that state and is broadcast to every display, so the projector and the phone
+  always agree.
+- **Connect Mobile Remote** in the Tools menu: pairing QR and code, live connection status, list of
+  paired devices, and per-device or all-device revocation.
+- **Pairing credentials that expire and cannot be replayed.** Codes live five minutes, are consumed
+  before a token is issued, and are replaced rather than stacked when regenerated. The QR carries
+  only the code, never an account token.
+- **Scoped remotes.** A pairing can grant only a subset of controls, and the server enforces it.
+
+### Security
+- Every command is validated server-side. Ownership is derived from the credential, never from a
+  client-supplied user or presentation id.
+- Remote tokens are short lived, bound to one user and one live session, and die the moment the
+  device is revoked.
+- Pairing attempts and remote commands are rate limited independently of other endpoints.
+- WebSocket messages are size limited, schema checked, and authentication must complete within five
+  seconds. Tokens travel in messages, not URLs, so they stay out of proxy logs.
+- Malformed and oversized messages are rejected; an unknown action is a `400` and an action the
+  device does not hold is a `403`.
+- Pairing secrets are never written to disk or logged.
+
+### Fixed
+- `goto` with a missing or non-numeric index no longer silently selects slide 0.
+
+### Documentation
+- WebSocket reverse-proxy configuration for nginx and CloudPanel, including how to verify the
+  upgrade and what to expect if a proxy blocks WebSockets.
+- Guidance for local-network-only installations and pairing without port forwarding.
+
+### Verified
+- 144 automated tests, including 29 for the remote: pairing, single-use codes, expiry, rate limits,
+  cross-account isolation, revocation, scoped controls, two phones at once, WebSocket
+  authentication, malformed messages, and live state reaching both the phone and the display.
+- Exercised in a real browser at phone width: pairing from a code, the slide rundown, current/next
+  previews, and `Next` moving the presentation from 1/4 to 2/4 through the server.
 
 ## Unreleased
 

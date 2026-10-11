@@ -213,6 +213,75 @@ instead, so local preview works without editing anything.
 
 ---
 
+## 3b. Mobile remote: WebSocket proxying
+
+The mobile remote uses a WebSocket at `/api/remote/ws`. The reverse proxy must forward WebSocket
+upgrades, or a phone falls back to polling.
+
+### nginx / CloudPanel
+
+Add this inside the `server { ... }` block for `app.simpleworshippresenter.com`, alongside the
+existing `location /` proxy:
+
+```nginx
+location /api/remote/ws {
+    proxy_pass http://127.0.0.1:3002;
+    proxy_http_version 1.1;
+
+    # These two lines are what make it a WebSocket instead of a plain request.
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+
+    # A remote stays connected for the length of a service. Without these the
+    # proxy closes the socket after its default idle timeout.
+    proxy_read_timeout 3600s;
+    proxy_send_timeout 3600s;
+    proxy_buffering off;
+}
+```
+
+Reload nginx:
+
+```bash
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+### Verify it
+
+```bash
+curl -i -N \
+  -H "Connection: Upgrade" \
+  -H "Upgrade: websocket" \
+  -H "Sec-WebSocket-Version: 13" \
+  -H "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==" \
+  https://app.simpleworshippresenter.com/api/remote/ws
+```
+
+You want `101 Switching Protocols`. A `200` or `404` means the upgrade is not reaching the app.
+
+### If WebSockets are blocked
+
+The remote still works. When the socket cannot be established it automatically falls back to
+plain HTTPS commands, so a locked-down proxy degrades to slightly less instant updates rather
+than breaking. Controls remain usable.
+
+### Local-network-only installs
+
+If the server is reachable only on the church LAN:
+
+- Put the phone on the same Wi-Fi network.
+- Pair using the local address, e.g. `http://192.168.1.50:3002/remote`.
+- Set `PUBLIC_URL` in `.env` to that address so the generated pairing link is correct.
+- Set `TRUST_PROXY=0`, as there is no proxy in front.
+
+No inbound port forwarding is needed for the hosted service — the phone makes an ordinary
+outbound connection to the server.
+
 ## 4. After deployment
 
 - [ ] `https://app.simpleworshippresenter.com/api/health` returns `"status":"ok"`

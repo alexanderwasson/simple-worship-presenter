@@ -2,6 +2,7 @@
 const path = require('path');
 const fs = require('fs');
 const express = require('express');
+const http = require('http');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
 const config = require('./src/config');
@@ -10,6 +11,8 @@ const db = require('./src/db');
 const auth = require('./src/auth');
 const { limiter, authLimiter, writeLimiter } = require('./src/rateLimit');
 const contentRoutes = require('./src/routes/content');
+const remoteRoutes = require('./src/routes/remote');
+const remoteWs = require('./src/remote-ws');
 
 const app = express();
 if (config.trustProxy) app.set('trust proxy', 1);
@@ -117,6 +120,7 @@ app.get('/api/auth/me', auth.requireAuth, (req, res) => {
 });
 
 // ---- application content ------------------------------------------------
+app.use('/api/remote', limiter({ label: 'api', max: config.rateLimitMaxWrite, message: 'Too many requests.' }), remoteRoutes);
 app.use('/api', limiter({ label: 'api', max: config.rateLimitMaxWrite, message: 'Too many requests.' }), contentRoutes);
 
 app.use('/api', (req, res) => res.status(404).json({ error: 'Not found' }));
@@ -144,7 +148,7 @@ app.use((err, req, res, next) => {
 const APP_DIR = path.join(__dirname, 'app');
 const SITE_DIR = path.join(__dirname, 'website');
 
-const APP_FILES = new Set(['index.html', 'presenter.html', 'styles.css', 'app.js', 'presenter.js', 'logo.svg']);
+const APP_FILES = new Set(['index.html', 'presenter.html', 'remote.html', 'styles.css', 'app.js', 'presenter.js', 'remote.js', 'logo.svg']);
 const SITE_FILES = new Set(['index.html', 'features.html', 'self-hosting.html', 'docs.html', 'privacy.html', 'terms.html', 'styles.css', 'site.js', 'logo.svg']);
 
 app.use((req, res, next) => {
@@ -160,7 +164,9 @@ const appPages = {
   '/app': 'index.html',
   '/app.html': 'index.html',
   '/presenter': 'presenter.html',
-  '/presenter.html': 'presenter.html'
+  '/presenter.html': 'presenter.html',
+  '/remote': 'remote.html',
+  '/remote.html': 'remote.html'
 };
 app.get(Object.keys(appPages), (req, res) => res.sendFile(path.join(APP_DIR, appPages[req.path])));
 
@@ -184,8 +190,12 @@ app.get('/site/*', (req, res) => {
 
 app.get('*', (req, res) => res.sendFile(path.join(APP_DIR, 'index.html')));
 
-const server = app.listen(config.port, () => {
-  const addr = server.address();
+const httpServer = http.createServer(app);
+const liveHub = remoteWs.attach(httpServer, config);
+app.set('liveHub', liveHub);
+
+httpServer.listen(config.port, () => {
+  const addr = httpServer.address();
   log.info('server started', {
     // PORT=0 asks the OS for a free port; report the one we actually got.
     port: typeof addr === 'object' && addr ? addr.port : config.port,
@@ -197,7 +207,8 @@ const server = app.listen(config.port, () => {
 
 function shutdown(signal) {
   log.info('shutting down', { signal });
-  server.close(() => process.exit(0));
+  liveHub.close();
+  httpServer.close(() => process.exit(0));
   setTimeout(() => process.exit(1), 5000).unref();
 }
 process.on('SIGTERM', () => shutdown('SIGTERM'));
