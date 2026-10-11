@@ -254,6 +254,13 @@ test('instance maintenance', async t => {
     assert.match(confirmed.body.run.stdout, /should-not-run/);
   });
 
+  await t.test('the dashboard reports which update tools are actually available', async () => {
+    const res = await server.api('/admin/update', {}, admin.cookie);
+    assert.equal(typeof res.body.commands, 'object');
+    assert.equal(typeof res.body.commands.git, 'boolean', 'git availability must be reported');
+    assert.equal(typeof res.body.commands.npm, 'boolean', 'npm availability must be reported');
+  });
+
   await t.test('a failing update command is reported, not hidden', async () => {
     const failing = await startServer({ UPDATE_COMMAND: 'exit 3' });
     t.after(() => failing.stop());
@@ -265,6 +272,10 @@ test('instance maintenance', async t => {
     const res = await failing.api('/admin/update/run', { method: 'POST', body: { confirm: true } }, cookie);
     assert.equal(res.status, 500);
     assert.equal(res.body.run.exit_code, 3);
+    assert.equal(res.body.run.ok, false);
+    assert.equal(typeof res.body.run.stderr, 'string', 'stderr must be available to the caller');
+    assert.equal(typeof res.body.run.stdout, 'string', 'stdout must be available to the caller');
+    assert.match(res.body.error, /failed/i);
   });
 
   await t.test('the database backup can be downloaded by an admin only', async () => {

@@ -2,7 +2,7 @@
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
-const { exec } = require('child_process');
+const { exec, execSync } = require('child_process');
 const express = require('express');
 const multer = require('multer');
 const config = require('../config');
@@ -511,6 +511,22 @@ const { compareVersions, pickVersion } = require('../version');
 const APP_ROOT = path.join(__dirname, '..', '..');
 const pkg = require(path.join(APP_ROOT, 'package.json'));
 
+// Self-update needs git and npm on PATH. Report what is actually available so
+// a failed update can be diagnosed from the dashboard instead of guessed at.
+function commandAvailable(cmd) {
+  try {
+    execSync(process.platform === 'win32' ? `where ${cmd}` : `command -v ${cmd}`, {
+      stdio: 'ignore',
+      timeout: 5000
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+const commandStatus = () => ({ git: commandAvailable('git'), npm: commandAvailable('npm') });
+
 router.get('/admin/update', auth.requireAdmin, (req, res) => {
   res.json({
     current_version: pkg.version,
@@ -522,6 +538,7 @@ router.get('/admin/update', auth.requireAdmin, (req, res) => {
     command_configured: Boolean(config.updateCommand),
     check_url: config.updateCheckUrl || null,
     update_command: config.updateCommand || null,
+    commands: commandStatus(),
     last_check: db.getSetting('update:last_check', null),
     last_run: db.getSetting('update:last_run', null),
     stats: db.stats()

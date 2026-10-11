@@ -52,7 +52,13 @@ async function api(path, options = {}) {
   if (res.status === 204) return { ok: true };
   const type = res.headers.get('content-type') || '';
   const data = type.includes('json') ? await res.json() : {};
-  if (!res.ok) { const err = new Error(data.error || 'Request failed'); err.status = res.status; throw err; }
+  if (!res.ok) {
+    const err = new Error(data.error || 'Request failed');
+    err.status = res.status;
+    // Keep the whole payload so callers can surface diagnostic detail.
+    err.body = data;
+    throw err;
+  }
   return data;
 }
 
@@ -1402,15 +1408,23 @@ async function wireUpdatePanel() {
     $('#updateCheckHint').textContent = info.check_configured
       ? 'Source: ' + info.check_url
       : 'Disabled — set UPDATE_CHECK_URL in .env to enable';
-    $('#updateRunHint').textContent = info.command_configured
+    let runHint = info.command_configured
       ? 'Command: ' + info.update_command
       : 'Disabled — set UPDATE_COMMAND in .env to enable';
+    const missing = Object.entries(info.commands || {}).filter(([, ok]) => !ok).map(([name]) => name);
+    if (missing.length) {
+      runHint += ` — ⚠ ${missing.join(' and ')} not found on PATH, so this will fail`;
+    }
+    $('#updateRunHint').textContent = runHint;
     $('#checkUpdates').disabled = !info.check_configured;
     $('#runUpdate').disabled = !info.command_configured;
+    return info;
   };
 
+  let updateCommand = '';
   try {
-    paint(await api('/admin/update'));
+    const info = paint(await api('/admin/update'));
+    updateCommand = info.update_command || '';
   } catch (e) {
     show(`<p class="legal-note">Could not load update information: ${esc(e.message)}</p>`);
     return;
@@ -1438,7 +1452,12 @@ async function wireUpdatePanel() {
         <p class="restart-notice"><strong>Restart required.</strong> The new code is installed but not running yet.
         Restart the service — <code>pm2 restart simple-worship-presenter</code> — then reload this page.</p>`);
     } catch (e) {
-      show(`<p class="legal-note">${esc(e.message)}</p>`);
+      const run = e.body && e.body.run;
+      show(`<p><strong>Update failed.</strong> ${esc(e.message)}</p>
+        ${run && run.exit_code !== undefined ? `<p class="legal-note">Exit code ${esc(run.exit_code)}${run.signal ? ' (killed by ' + esc(run.signal) + ')' : ''}.</p>` : ''}
+        ${run && run.stderr ? `<pre class="update-log">${esc(String(run.stderr).trim())}</pre>` : ''}
+        ${run && run.stdout ? `<pre class="update-log">${esc(String(run.stdout).trim())}</pre>` : ''}
+        <p class="restart-notice">Run the same command yourself to see the full output:<br><code>${esc(updateCommand)}</code></p>`);
     }
   };
 
