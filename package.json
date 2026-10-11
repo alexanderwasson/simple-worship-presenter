@@ -1,4 +1,4 @@
-{
+﻿{
   "name": "simple-worship-presenter",
   "version": "0.3.1",
   "private": true,
@@ -7,11 +7,13 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "check": "node --check server.js && node --check ecosystem.config.js && node --check app/app.js && node --check app/presenter.js && node --check website/site.js && node --check src/config.js && node --check src/log.js && node --check src/db.js && node --check src/auth.js && node --check src/rateLimit.js && node --check src/routes/content.js",
+    "users": "node scripts/promote-admin.js --list",
+    "promote-admin": "node scripts/promote-admin.js",
+    "check": "node --check server.js && node --check ecosystem.config.js && node --check scripts/promote-admin.js && node --check app/app.js && node --check app/presenter.js && node --check website/site.js && node --check src/config.js && node --check src/log.js && node --check src/db.js && node --check src/auth.js && node --check src/rateLimit.js && node --check src/routes/content.js",
     "smoke": "node scripts/smoke.js",
-    "test": "npm run check && node --test test/auth.test.js test/quota.test.js test/content.test.js test/security.test.js test/data.test.js test/admin.test.js",
+    "test": "npm run check && node --test test/auth.test.js test/quota.test.js test/content.test.js test/security.test.js test/data.test.js test/admin.test.js test/maintenance.test.js",
     "test:all": "npm run check && node scripts/smoke.js && npm run test:unit",
-    "test:unit": "node --test test/auth.test.js test/quota.test.js test/content.test.js test/security.test.js test/data.test.js test/admin.test.js"
+    "test:unit": "node --test test/auth.test.js test/quota.test.js test/content.test.js test/security.test.js test/data.test.js test/admin.test.js test/maintenance.test.js"
   },
   "engines": {
     "node": ">=18"
