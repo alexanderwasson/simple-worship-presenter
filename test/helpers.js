@@ -9,16 +9,20 @@ const ROOT = path.join(__dirname, '..');
 
 async function startServer(extraEnv = {}) {
   const DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'swp-test-'));
-  const port = 4000 + Math.floor(Math.random() * 2000);
+  // PORT=0 asks the OS for a free port. Picking one at random lets parallel test
+  // files collide and silently talk to each other's servers.
+  let port = 0;
   const child = spawn(process.execPath, ['server.js'], {
     cwd: ROOT,
     env: {
       ...process.env,
-      PORT: String(port),
+      PORT: '0',
       DATA_DIR,
       SESSION_SECRET: 'test-secret-value-for-tests',
       NODE_ENV: 'development',
-      LOG_LEVEL: 'error',
+      // Must allow `info`: the server reports its OS-assigned port in the
+      // "server started" line, and the harness reads it from stdout.
+      LOG_LEVEL: 'info',
       // Tests create many accounts quickly; the dedicated rate-limit test
       // overrides these to prove the limiter works.
       RATE_LIMIT_MAX_AUTH: '10000',
@@ -29,7 +33,18 @@ async function startServer(extraEnv = {}) {
   });
 
   let stderr = '';
+  let stdout = '';
   child.stderr.on('data', d => (stderr += d.toString()));
+  child.stdout.on('data', d => {
+    stdout += d.toString();
+    for (const line of d.toString().split(/\r?\n/)) {
+      if (!line.trim()) continue;
+      try {
+        const entry = JSON.parse(line);
+        if (entry.msg === 'server started' && entry.port) port = entry.port;
+      } catch { /* not a structured log line */ }
+    }
+  });
 
   const request = (pathname, options = {}) => new Promise((resolve, reject) => {
     const opts = {
@@ -62,14 +77,20 @@ async function startServer(extraEnv = {}) {
     req.end();
   });
 
-  // Wait for the health endpoint.
-  for (let i = 0; i < 60; i++) {
-    try {
-      const health = await request('/api/health');
-      if (health.status === 200) break;
-    } catch { }
-    await new Promise(r => setTimeout(r, 50));
-    if (i === 59) throw new Error('server did not start: ' + stderr);
+  // Wait for the OS-assigned port, then for the health endpoint.
+  for (let i = 0; i < 80; i++) {
+    if (port) {
+      try {
+        const health = await request('/api/health');
+        if (health.status === 200) break;
+      } catch { }
+    }
+    await new Promise(r => setTimeout(r, 25));
+    if (i === 79) {
+      // Never leave an orphaned process behind: its stdio keeps the runner alive.
+      child.kill();
+      throw new Error('server did not start: ' + stderr + stdout);
+    }
   }
 
   const cookieFrom = res => {

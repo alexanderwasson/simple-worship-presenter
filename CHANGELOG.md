@@ -1,49 +1,66 @@
-# Changelog
+﻿# Changelog
 
 All notable changes to Simple Worship Presenter are recorded here.
 
-## 0.4.0 — 2026-10-11
+## 0.3.1 — 2026-10-11
+
+The release candidate for publication. Everything below is new since 0.3.0.
 
 ### Added
-- **Service plan playback.** "Save & present" now runs the whole plan: it saves, opens the audience
+- **Service plan playback.** "Save & present" runs the whole plan: it saves, opens the audience
   display and starts at item one. The editor shows the running order with the current item marked
-  *LIVE*, plus Previous/Next item controls and a jump-to-item list. Advancing past the last slide of
-  an item moves into the next item, so a whole service can be walked with <kbd>Space</kbd>.
-- **Running-order editor.** Service plans now show an ordered list with ↑ / ↓ / ✕ controls instead
-  of unordered checkboxes. The saved order is exactly the order shown.
+  *LIVE*, plus Previous/Next item controls and jump-to-item. Advancing past the last slide of an
+  item moves into the next item, so a whole service can be walked with <kbd>Space</kbd>.
+- **Running-order editor** with ↑ / ↓ / ✕ controls, so the saved order is exactly the order shown.
 - **Text animations** per slide: none, fade, rise, blur in, scale up, and word-by-word with
-  staggered timing. Animations replay on slide change and are disabled under
-  `prefers-reduced-motion`.
-- **14 font families** with proportional scaling, so the editor and a full-screen projector match.
-- **Text sizing and positioning**: 18–160 pt, bold toggle, text colour, horizontal alignment and
-  vertical position (top/middle/bottom), all stored per slide.
-- **Search** in every collection: presentations, service plans, songs, media and slides, plus a
-  global search (<kbd>Ctrl</kbd>+<kbd>K</kbd>) across all of them with grouped jump-to results.
+  staggered timing. Replays on slide change; disabled under `prefers-reduced-motion`.
+- **14 font families** with proportional scaling so the editor and a projector match.
+- **Text sizing and positioning**: 18–160 pt, bold, text colour, horizontal alignment and vertical
+  position, all stored per slide.
+- **Search** in every collection plus a global search (<kbd>Ctrl</kbd>+<kbd>K</kbd>) with grouped
+  jump-to results.
 - **Editor action bar**: Save, Present, Blank, previous/next slide, undo and redo.
+- **Administrator user management**: list accounts, create accounts, change names, promote/demote
+  between User and Admin, and delete accounts along with all their content.
+- **Editable storage quotas** per account and a default for new accounts. A quota cannot be set
+  below what the account already stores, and an administrator cannot lock themselves out.
+- **Instance maintenance panel**: version, Node and schema versions, uptime, downloadable database
+  backup, update check and self-update.
+- **Self-update support**, opt-in via `UPDATE_CHECK_URL` and `UPDATE_COMMAND`. Nothing runs and
+  nothing is contacted unless the operator configures it.
+- MIT licence.
 
 ### Changed
-- **Application and public website are now separate deployable units.** `app/` holds the
-  application client for `app.simpleworshippresenter.com`; `website/` is a standalone static site
-  for the apex domain with its own stylesheet and no dependency on the Node process. The workspace
-  now lives at the root of the application domain; the public site is previewable under `/site`.
-  *(Breaking route change — see below.)*
-- Slide previews and queue rows truncate long text instead of overflowing their panel.
+- **Application and public website are separate deployable units.** `app/` is the application for
+  `app.simpleworshippresenter.com`; `website/` is a standalone static site with its own stylesheet
+  and no dependency on the Node process. The workspace now sits at the application domain root and
+  the public site is previewable at `/site`.
+- **Storage is displayed in megabytes** throughout the workspace and admin panel. The server still
+  stores exact bytes.
+- Upgraded `multer` 1.x → 2.x, patching a number of vulnerabilities in the 1.x line.
+- Slide previews and queue rows truncate long text instead of overflowing.
 
 ### Fixed
+- **First-run administrator setup failed.** The name field was hidden in setup mode, so `name` was
+  sent empty and the account was rejected. It is now shown for setup and registration and hidden
+  only for sign-in.
+- Sign-in and registration failures show a persistent inline error instead of a passing toast, and
+  the dialog stays open so the form is not lost.
+- Opening the registration tab directly did not stay on that tab.
 - **Alignment buttons rendered blank.** The glyphs had been written as corrupted bytes; they are now
-  drawn in CSS and render in every browser.
-- **Slide thumbnails overlapped in the editor.** The slide column was sizing its implicit grid track
-  to max-content, so thumbnails were 210 px wide inside a 175 px track. Both wrapper columns are now
-  constrained to their allotted width.
-- Removed all corrupted characters from the source files.
+  drawn in CSS. All remaining corrupted characters were removed from the source.
+- **Slide thumbnails overlapped in the editor.** The slide column sized its implicit grid track to
+  max-content, so thumbnails were 210 px wide inside a 175 px track.
+- **Test suite could fail intermittently.** Test servers picked random ports, so parallel test files
+  could collide and silently talk to each other's servers. Servers now bind to port 0 and report the
+  port the OS assigned. Also fixed a hang caused by an orphaned test server.
 
 ### Migration notes
-- **Routing:** the workspace moved from `/app` to `/` on the application domain. The public site is
-  now served from `website/` and is previewable at `/site`.
+- **Routing:** the workspace moved from `/app` to `/` on the application domain; the public site is
+  now served from `website/` and previewed at `/site`.
 - **Files:** `app.html` → `app/index.html`; `app.js`, `presenter.js`, `presenter.html`, `styles.css`
   → `app/`; the marketing pages → `website/`.
-- **No data migration is required.**
-
+- **No data migration is required.** Existing user data loads unchanged.
 ## 0.3.0 — 2026-10-11
 
 A structural release: the application was reorganised behind stable interfaces and the highest

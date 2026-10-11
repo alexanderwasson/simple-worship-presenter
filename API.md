@@ -109,8 +109,43 @@ for conversion into slides. Kept for backward compatibility.
 
 ## Admin
 
+All admin routes require the `admin` role and return `403` otherwise.
+
 ### `GET /api/admin/instance` · `PUT /api/admin/instance`
-Requires the `admin` role. Reads and updates the instance default quota and returns usage stats.
+Reads and updates the instance default quota and returns usage statistics.
+Body: `{ default_quota_bytes? }`.
+
+### `GET /api/admin/users`
+Returns `{ default_quota_bytes, users[] }` with each account's name, email, role, quota and usage.
+
+### `POST /api/admin/users`
+Body: `{ name, email, password, quota_bytes?, role? }`. Creates an account that can sign in
+immediately. `quota_bytes` defaults to the instance default.
+
+### `PUT /api/admin/users/:id`
+Body: `{ name?, quota_bytes?, role? }`. Quotas cannot be set below the storage the account already
+uses. An administrator cannot remove their own `admin` role.
+
+### `DELETE /api/admin/users/:id`
+Deletes the account and all of its presentations, plans, songs and media, and frees the storage.
+An administrator cannot delete their own account here.
+
+### `GET /api/admin/update`
+Version and maintenance information: current version, Node version, schema version, uptime, data
+directory, whether update checking and self-update are configured, and the last check/run results.
+
+### `POST /api/admin/update/check`
+Requires `UPDATE_CHECK_URL` to be configured. Fetches a JSON endpoint returning
+`{ version, notes, url }` and compares it against the installed version.
+
+### `POST /api/admin/update/run`
+Body: `{ confirm: true }`. Requires `UPDATE_COMMAND` to be configured by the operator. Runs that
+command in the application directory and returns the captured output. The command comes from
+environment configuration, never from the request.
+
+### `GET /api/admin/backup`
+Downloads the data file (accounts, presentations, plans, songs, media metadata) as a dated JSON
+attachment. Uploaded media live alongside it in `DATA_DIR/uploads`.
 
 ## Rate limits
 

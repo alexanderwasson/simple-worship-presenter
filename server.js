@@ -178,8 +178,10 @@ app.get('/site/*', (req, res) => {
 app.get('*', (req, res) => res.sendFile(path.join(APP_DIR, 'index.html')));
 
 const server = app.listen(config.port, () => {
+  const addr = server.address();
   log.info('server started', {
-    port: config.port,
+    // PORT=0 asks the OS for a free port; report the one we actually got.
+    port: typeof addr === 'object' && addr ? addr.port : config.port,
     instance: config.instanceName,
     data_dir: config.dataDir,
     mode: config.nodeEnv

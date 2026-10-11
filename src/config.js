@@ -39,7 +39,7 @@ const defaultSecret = 'development-only-change-me';
 const config = {
   nodeEnv,
   isProduction,
-  port: num('PORT', 3000, { min: 1, integer: true }),
+  port: num('PORT', 3000, { min: 0, integer: true }),
   dataDir: path.resolve(process.env.DATA_DIR || path.join(__dirname, '..', 'data')),
   sessionSecret: process.env.SESSION_SECRET || (isProduction ? null : defaultSecret),
   trustProxy: process.env.TRUST_PROXY === '1',
@@ -51,7 +51,13 @@ const config = {
   maxRequestBytes: num('MAX_REQUEST_BYTES', 2097152, { min: 1024, integer: true }),
   rateLimitWindowMs: num('RATE_LIMIT_WINDOW_MS', 60000, { min: 1000, integer: true }),
   rateLimitMaxAuth: num('RATE_LIMIT_MAX_AUTH', 10, { min: 1, integer: true }),
-  rateLimitMaxWrite: num('RATE_LIMIT_MAX_WRITE', 240, { min: 1, integer: true })
+  rateLimitMaxWrite: num('RATE_LIMIT_MAX_WRITE', 240, { min: 1, integer: true }),
+
+  // Optional self-update support. Both are disabled unless the operator opts in,
+  // so a fresh install can never run arbitrary commands or call home.
+  updateCheckUrl: process.env.UPDATE_CHECK_URL || '',
+  updateCommand: process.env.UPDATE_COMMAND || '',
+  updateTimeoutMs: num('UPDATE_TIMEOUT_MS', 600000, { min: 1000, integer: true })
 };
 
 if (!config.sessionSecret) {

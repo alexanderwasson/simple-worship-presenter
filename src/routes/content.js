@@ -2,6 +2,7 @@
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
+const { exec } = require('child_process');
 const express = require('express');
 const multer = require('multer');
 const config = require('../config');
@@ -501,6 +502,103 @@ router.delete('/admin/users/:id', auth.requireAdmin, writeLimiter(), async (req,
   await db.removeUser(target.id);
   log.info('admin deleted user', { admin: req.user.id, user: target.id });
   res.json({ ok: true });
+});
+
+// ---- admin: updates and backups -----------------------------------------
+// Self-update is opt-in through UPDATE_COMMAND. Nothing runs unless the
+// operator has explicitly configured it, and the command is never user input.
+function compareVersions(a, b) {
+  const pa = String(a).replace(/^v/, '').split(/[.\-+]/).map(Number);
+  const pb = String(b).replace(/^v/, '').split(/[.\-+]/).map(Number);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    const x = pa[i] || 0, y = pb[i] || 0;
+    if (x > y) return 1;
+    if (x < y) return -1;
+  }
+  return 0;
+}
+
+const APP_ROOT = path.join(__dirname, '..', '..');
+const pkg = require(path.join(APP_ROOT, 'package.json'));
+
+router.get('/admin/update', auth.requireAdmin, (req, res) => {
+  res.json({
+    current_version: pkg.version,
+    node_version: process.version,
+    schema_version: db.stats().schema_version,
+    uptime_seconds: Math.round(process.uptime()),
+    data_dir: config.dataDir,
+    check_configured: Boolean(config.updateCheckUrl),
+    command_configured: Boolean(config.updateCommand),
+    last_check: db.getSetting('update:last_check', null),
+    last_run: db.getSetting('update:last_run', null),
+    stats: db.stats()
+  });
+});
+
+router.post('/admin/update/check', auth.requireAdmin, writeLimiter(), async (req, res) => {
+  if (!config.updateCheckUrl) {
+    return jsonError(res, 400, 'Update checks are not configured. Set UPDATE_CHECK_URL to a JSON endpoint returning { version, notes, url }.');
+  }
+  try {
+    const response = await fetch(config.updateCheckUrl, { signal: AbortSignal.timeout(15000) });
+    if (!response.ok) throw new Error('update source returned HTTP ' + response.status);
+    const info = await response.json();
+    const latest = String(info.version || info.tag_name || '').replace(/^v/, '');
+    const result = {
+      checked_at: db.now(),
+      current_version: pkg.version,
+      latest_version: latest || null,
+      notes: String(info.notes || info.body || '').slice(0, 2000),
+      url: String(info.url || info.html_url || '').slice(0, 500),
+      update_available: Boolean(latest) && compareVersions(latest, pkg.version) > 0
+    };
+    await db.setSetting('update:last_check', result);
+    res.json(result);
+  } catch (err) {
+    const failure = { checked_at: db.now(), current_version: pkg.version, error: String(err.message) };
+    await db.setSetting('update:last_check', failure);
+    jsonError(res, 502, 'Could not reach the update source: ' + err.message);
+  }
+});
+
+router.post('/admin/update/run', auth.requireAdmin, async (req, res) => {
+  if (!config.updateCommand) {
+    return jsonError(res, 400, 'Self-update is not configured. Set UPDATE_COMMAND in .env to the command your deployment should run.');
+  }
+  if (req.body.confirm !== true) {
+    return jsonError(res, 400, 'Send confirm: true to run the update command.');
+  }
+  log.info('admin started update', { admin: req.user.id });
+  const result = await new Promise(resolve => {
+    exec(config.updateCommand, {
+      cwd: APP_ROOT,
+      timeout: config.updateTimeoutMs,
+      maxBuffer: 4 * 1024 * 1024,
+      env: process.env
+    }, (err, stdout, stderr) => {
+      resolve({
+        ran_at: db.now(),
+        ok: !err,
+        exit_code: err ? (typeof err.code === 'number' ? err.code : 1) : 0,
+        signal: (err && err.signal) || null,
+        stdout: String(stdout || '').slice(-8000),
+        stderr: String(stderr || '').slice(-4000)
+      });
+    });
+  });
+  await db.setSetting('update:last_run', result);
+  log.info('admin update finished', { ok: result.ok, exit_code: result.exit_code });
+  if (!result.ok) return res.status(500).json({ error: 'Update command failed', run: result });
+  res.json({ run: result });
+});
+
+router.get('/admin/backup', auth.requireAdmin, (req, res) => {
+  // The data file holds accounts, presentations, plans, songs and media
+  // metadata. Uploaded files live alongside it in DATA_DIR/uploads.
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Content-Disposition', `attachment; filename="swp-backup-${new Date().toISOString().slice(0, 10)}.json"`);
+  res.sendFile(db.file);
 });
 
 module.exports = router;

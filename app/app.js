@@ -7,6 +7,12 @@ const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&a
 const lines = s => esc(s).replace(/\r?\n/g, '<br>');
 const pad = n => String(n).padStart(2, '0');
 const bytes = n => { n = Number(n) || 0; return n < 1024 ? n + ' B' : n < 1048576 ? (n / 1024).toFixed(1) + ' KB' : n < 1073741824 ? (n / 1048576).toFixed(1) + ' MB' : (n / 1073741824).toFixed(2) + ' GB'; };
+// Storage is shown in megabytes so quotas are easy to reason about; the server
+// still stores exact bytes.
+const MB = 1048576;
+const toMB = b => Math.round(((Number(b) || 0) / MB) * 10) / 10;
+const fromMB = mb => Math.max(0, Math.round((Number(mb) || 0) * MB));
+const mb = b => { const v = toMB(b); return v >= 1024 ? (v / 1024).toFixed(2) + ' GB' : v + ' MB'; };
 
 const state = {
   user: null,
@@ -189,7 +195,7 @@ function renderLibrary() {
   $('#statsRow').innerHTML = `
     <div class="stat-card"><span class="stat-icon orange">✦</span><div><strong>${state.presentations.length}</strong><small>Presentations</small></div></div>
     <div class="stat-card"><span class="stat-icon blue">♪</span><div><strong>${state.songs.length}</strong><small>Songs</small></div></div>
-    <div class="stat-card"><span class="stat-icon green">▤</span><div><strong>${bytes(state.user ? state.user.used_bytes : 0)}</strong><small>of ${bytes(state.user ? state.user.quota_bytes : 0)} used</small></div></div>`;
+    <div class="stat-card"><span class="stat-icon green">▤</span><div><strong>${mb(state.user ? state.user.used_bytes : 0)}</strong><small>of ${mb(state.user ? state.user.quota_bytes : 0)} used</small></div></div>`;
 
   $$('[data-open]', grid).forEach(el => el.addEventListener('click', e => {
     if (e.target.closest('[data-menu]')) return;
@@ -1196,17 +1202,17 @@ async function refreshUser() {
   try {
     const { user } = await api('/auth/me');
     state.user = user;
-    $('#accountQuota').textContent = bytes(user.used_bytes) + ' of ' + bytes(user.quota_bytes);
+    $('#accountQuota').textContent = mb(user.used_bytes) + ' of ' + mb(user.quota_bytes);
   } catch { }
 }
 
 function renderSettings() {
   const s = state.settings;
   const pct = s.quota_bytes ? Math.min(100, Math.round((s.used_bytes / s.quota_bytes) * 100)) : 0;
-  $('#accountQuota').textContent = bytes(s.used_bytes) + ' of ' + bytes(s.quota_bytes);
+  $('#accountQuota').textContent = mb(s.used_bytes) + ' of ' + mb(s.quota_bytes);
   $('#settingsPanel').innerHTML = `
     <div class="setting"><div><strong>Display name</strong><small>Shown on this device</small></div><input id="setName" value="${esc(state.user ? state.user.name : '')}"></div>
-    <div class="setting"><div><strong>Storage</strong><small>${bytes(s.used_bytes)} used of ${bytes(s.quota_bytes)} included</small></div>
+    <div class="setting"><div><strong>Storage</strong><small>${mb(s.used_bytes)} used of ${mb(s.quota_bytes)} included</small></div>
       <div class="quota-bar"><i style="width:${pct}%"></i></div></div>
     <div class="setting"><div><strong>CCLI licence</strong><small>Shown in the presentation footer</small></div>
       <div class="inline-controls"><input id="setCcli" value="${esc(s.ccli_license || '')}" placeholder="e.g. 1234567"><button class="secondary-button" id="saveCcli">Save</button></div></div>
@@ -1267,14 +1273,15 @@ async function renderAdminPanel() {
   host.innerHTML = `
     <div class="admin-head">
       <div><p class="eyebrow">Administrator</p><h2>Users &amp; storage</h2>
-        <p class="subtitle">Create accounts, set storage allowances and remove access.</p></div>
+        <p class="subtitle">Create accounts, set storage allowances and remove access. Quotas are shown in megabytes.</p></div>
     </div>
 
     <div class="settings-panel">
       <div class="setting">
         <div><strong>Default quota for new accounts</strong><small>Applied when an account is created</small></div>
         <div class="inline-controls">
-          <input id="adminDefaultQuota" type="number" min="0" step="1048576" value="${adminDefaultQuota}">
+          <input id="adminDefaultQuota" type="number" min="0" step="1" value="${toMB(adminDefaultQuota)}" title="Megabytes">
+          <span class="unit-label">MB</span>
           <button class="secondary-button" id="saveDefaultQuota">Save</button>
         </div>
       </div>
@@ -1288,14 +1295,14 @@ async function renderAdminPanel() {
         <input id="newUserName" placeholder="Name">
         <input id="newUserEmail" type="email" placeholder="Email">
         <input id="newUserPassword" type="password" placeholder="Password (10+)">
-        <input id="newUserQuota" type="number" min="0" step="1048576" value="${adminDefaultQuota}" title="Storage quota in bytes">
+        <span class="quota-field"><input id="newUserQuota" type="number" min="0" step="1" value="${toMB(adminDefaultQuota)}" title="Storage quota"><span class="unit-label">MB</span></span>
         <button class="primary-button" id="createUser">Create account</button>
       </div>
     </div>
 
     <div class="user-table">
       <div class="user-row user-row-head">
-        <span>Name</span><span>Email</span><span>Role</span><span>Storage</span><span>Quota</span><span></span>
+        <span>Name</span><span>Email</span><span>Role</span><span>Storage</span><span>Quota (MB)</span><span></span>
       </div>
       ${adminUsers.map(u => `
         <div class="user-row" data-user="${esc(u.id)}">
@@ -1305,19 +1312,35 @@ async function renderAdminPanel() {
             <option value="user" ${u.role === 'user' ? 'selected' : ''}>User</option>
             <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
           </select></span>
-          <span class="u-used">${bytes(u.used_bytes)}</span>
-          <span><input class="u-quota" type="number" min="0" step="1048576" value="${u.quota_bytes}"></span>
+          <span class="u-used">${mb(u.used_bytes)}</span>
+          <span><input class="u-quota" type="number" min="0" step="1" value="${toMB(u.quota_bytes)}"></span>
           <span class="u-actions">
             <button class="u-save">Save</button>
             <button class="u-delete" ${u.id === state.user.id ? 'disabled' : ''}>Delete</button>
           </span>
         </div>`).join('')}
     </div>
-    <p class="legal-note">Quota values are in bytes. ${bytes(262144000)} = 250 MB. Deleting an account removes its presentations, plans, songs and media.</p>`;
+    <p class="legal-note">Quotas are in megabytes (${toMB(262144000)} MB = 250 MB). Deleting an account removes its presentations, plans, songs and media.</p>
+
+    <div class="admin-head">
+      <div><p class="eyebrow">Maintenance</p><h2>Instance &amp; updates</h2>
+        <p class="subtitle">Version information, backups and self-update.</p></div>
+    </div>
+    <div class="settings-panel" id="updatePanel">
+      <div class="setting"><div><strong>Current version</strong><small>Simple Worship Presenter</small></div><span class="version-pill" id="verCurrent">…</span></div>
+      <div class="setting"><div><strong>Runtime</strong><small>Node.js and data schema</small></div><span class="mono-label" id="verRuntime">…</span></div>
+      <div class="setting"><div><strong>Check for updates</strong><small id="updateCheckHint">Compares this install against your configured update source</small></div>
+        <button class="secondary-button" id="checkUpdates">Check now</button></div>
+      <div class="setting"><div><strong>Run update</strong><small id="updateRunHint">Runs the operator-configured update command</small></div>
+        <button class="secondary-button" id="runUpdate">Run update</button></div>
+      <div class="setting"><div><strong>Backup</strong><small>Download the account, presentation, plan and song database</small></div>
+        <button class="secondary-button" id="downloadBackup">Download backup</button></div>
+      <div class="update-output" id="updateOutput" hidden></div>
+    </div>`;
 
   $('#saveDefaultQuota').onclick = async () => {
     try {
-      await api('/admin/instance', { method: 'PUT', body: { default_quota_bytes: Number($('#adminDefaultQuota').value) } });
+      await api('/admin/instance', { method: 'PUT', body: { default_quota_bytes: fromMB($('#adminDefaultQuota').value) } });
       toast('Default quota updated');
     } catch (e) { toast(e.message, 'error'); }
   };
@@ -1330,7 +1353,7 @@ async function renderAdminPanel() {
           name: $('#newUserName').value,
           email: $('#newUserEmail').value,
           password: $('#newUserPassword').value,
-          quota_bytes: Number($('#newUserQuota').value)
+          quota_bytes: fromMB($('#newUserQuota').value)
         }
       });
       toast('Created ' + created.user.name);
@@ -1346,7 +1369,7 @@ async function renderAdminPanel() {
         await api('/admin/users/' + id, {
           method: 'PUT',
           body: {
-            quota_bytes: Number(row.querySelector('.u-quota').value),
+            quota_bytes: fromMB(row.querySelector('.u-quota').value),
             role: row.querySelector('.u-role').value
           }
         });
@@ -1364,6 +1387,74 @@ async function renderAdminPanel() {
       } catch (e) { toast(e.message, 'error'); }
     };
   });
+
+  wireUpdatePanel();
+}
+
+async function wireUpdatePanel() {
+  const output = $('#updateOutput');
+  const show = html => { output.innerHTML = html; output.hidden = false; };
+
+  const paint = info => {
+    $('#verCurrent').textContent = 'v' + info.current_version;
+    $('#verRuntime').textContent = `Node ${info.node_version} · schema ${info.schema_version} · up ${Math.round(info.uptime_seconds / 60)}m`;
+    $('#updateCheckHint').textContent = info.check_configured
+      ? 'Compares this install against your configured update source'
+      : 'Not configured — set UPDATE_CHECK_URL in .env';
+    $('#updateRunHint').textContent = info.command_configured
+      ? 'Runs the operator-configured update command'
+      : 'Not configured — set UPDATE_COMMAND in .env';
+    $('#checkUpdates').disabled = !info.check_configured;
+    $('#runUpdate').disabled = !info.command_configured;
+  };
+
+  try {
+    paint(await api('/admin/update'));
+  } catch (e) {
+    show(`<p class="legal-note">Could not load update information: ${esc(e.message)}</p>`);
+    return;
+  }
+
+  $('#checkUpdates').onclick = async () => {
+    show('<p class="legal-note">Checking…</p>');
+    try {
+      const r = await api('/admin/update/check', { method: 'POST' });
+      show(r.update_available
+        ? `<p><strong>Update available:</strong> v${esc(r.latest_version)} (you have v${esc(r.current_version)}).</p>${r.notes ? `<p class="legal-note">${esc(r.notes)}</p>` : ''}`
+        : `<p><strong>Up to date.</strong> You are running v${esc(r.current_version)}.</p>`);
+    } catch (e) { show(`<p class="legal-note">${esc(e.message)}</p>`); }
+  };
+
+  $('#runUpdate').onclick = async () => {
+    if (!confirm('Run the update command now? The service may restart briefly.')) return;
+    show('<p class="legal-note">Running update… this can take a few minutes.</p>');
+    try {
+      const r = await api('/admin/update/run', { method: 'POST', body: { confirm: true } });
+      const run = r.run || {};
+      show(`<p><strong>Update finished.</strong> Exit code ${run.exit_code}.</p>
+        ${run.stdout ? `<pre class="update-log">${esc(run.stdout)}</pre>` : ''}
+        ${run.stderr ? `<pre class="update-log">${esc(run.stderr)}</pre>` : ''}
+        <p class="legal-note">Reload this page to pick up the new version.</p>`);
+    } catch (e) {
+      show(`<p class="legal-note">${esc(e.message)}</p>`);
+    }
+  };
+
+  $('#downloadBackup').onclick = async () => {
+    try {
+      const res = await fetch('/api/admin/backup');
+      if (!res.ok) throw new Error('Backup failed');
+      const blob = await res.blob();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `swp-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(a.href);
+      toast('Backup downloaded');
+    } catch (e) { toast(e.message, 'error'); }
+  };
 }
 
 /* --------------------------------------------------------------- menus */
