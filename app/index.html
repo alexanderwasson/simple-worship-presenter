@@ -1,0 +1,192 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Workspace — Simple Worship Presenter</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@400;600;700&family=Lora:wght@400;500;600;700&family=Merriweather:wght@300;400;700&family=Libre+Baskerville:wght@400;700&family=Roboto+Slab:wght@300;400;700&family=Oswald:wght@300;400;600&family=Bebas+Neue&family=Montserrat:wght@300;400;600;800&family=Poppins:wght@300;400;600;800&family=Inter:wght@300;400;600;800&family=Source+Sans+3:wght@300;400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=26">
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar">
+    <a class="brand" href="/"><span class="brand-mark"><i></i><i></i><i></i></span><span>Simple Worship Presenter</span></a>
+    <p class="eyebrow sidebar-label">Workspace</p>
+    <nav class="main-nav" aria-label="Main navigation">
+      <button class="nav-item active" data-view="library"><span class="nav-icon">▦</span>Library</button>
+      <button class="nav-item" data-view="songs"><span class="nav-icon">♪</span>Songs</button>
+      <button class="nav-item" data-view="media"><span class="nav-icon">▧</span>Media</button>
+      <button class="nav-item" data-view="settings"><span class="nav-icon">⚙</span>Settings</button>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="made-by"><span class="online-dot"></span><div><strong id="accountName">Signed out</strong><small id="accountQuota">—</small></div></div>
+      <button class="help-link" data-modal="about">? &nbsp; About &amp; legal</button>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <div class="crumbs"><span>Workspace</span><b>/</b><strong id="crumbTitle">Library</strong></div>
+      <div class="global-search">
+        <span class="search-icon">⌕</span>
+        <input id="globalSearch" type="search" placeholder="Search presentations, songs, media…" autocomplete="off" aria-label="Search the workspace">
+        <kbd>Ctrl K</kbd>
+        <div class="search-results" id="searchResults" hidden></div>
+      </div>
+      <div class="top-actions">
+        <span class="save-status" id="saveStatus">● Ready</span>
+        <button class="icon-button" data-modal="shortcuts" aria-label="Keyboard shortcuts">⌘</button>
+        <button class="avatar" id="avatar">?</button>
+      </div>
+    </header>
+
+    <div class="control-menu" id="controlMenu">
+      <span>File</span><span>Edit</span><span>View</span><span>Slide</span><span>Media</span><span>Tools</span><span>Settings</span><span>Help</span>
+      <b></b>
+      <button id="quickBlack" title="Blank the audience display">■ Blank</button>
+      <button id="quickLive" title="Open the audience display">● Live</button>
+    </div>
+
+    <!-- LIBRARY -->
+    <section id="libraryView" class="view active-view">
+      <div class="page-heading">
+        <div>
+          <p class="eyebrow">Your workspace</p>
+          <h1 id="welcomeHeading">Library<span class="accent-dot">.</span></h1>
+          <p class="subtitle">Build a clear, beautiful moment for every room.</p>
+        </div>
+        <div class="heading-actions">
+          <button class="secondary-button" id="newProgramBtn">＋ New service plan</button>
+          <label class="secondary-button import-button">⇧ Import<input id="importInput" type="file" accept=".txt,.xml,.json,.csv" hidden></label>
+          <button class="primary-button" id="newDeckBtn"><span>＋</span> New presentation</button>
+        </div>
+      </div>
+
+      <div class="stats-row" id="statsRow"></div>
+
+      <div class="section-head">
+        <div><h2>Presentations</h2><p>Open one to edit, or add it to a service plan.</p></div>
+        <div class="search-box"><span class="search-icon">⌕</span><input id="searchPresentations" class="search-input" type="search" placeholder="Search presentations…" autocomplete="off"></div>
+      </div>
+      <div class="deck-grid" id="deckGrid"></div>
+
+      <section class="program-library" id="programLibrary">
+        <div class="program-library-head">
+          <div><h2>Service plans</h2><p>Group presentations for a service or event date.</p></div>
+          <div class="search-box"><span class="search-icon">⌕</span><input id="searchPrograms" class="search-input" type="search" placeholder="Search service plans…" autocomplete="off"></div>
+        </div>
+        <div class="program-card-grid" id="programGrid"></div>
+      </section>
+    </section>
+
+    <!-- SONGS -->
+    <section id="songsView" class="view">
+      <div class="page-heading">
+        <div><p class="eyebrow">Library</p><h1>Songs<span class="accent-dot">.</span></h1><p class="subtitle">Store lyrics with sections, credits and CCLI details.</p></div>
+        <div class="heading-actions"><button class="primary-button" id="newSongBtn">＋ New song</button></div>
+      </div>
+      <div class="song-layout">
+        <div class="song-col">
+          <div class="search-box"><span class="search-icon">⌕</span><input id="searchSongs" class="search-input" type="search" placeholder="Search songs…" autocomplete="off"></div>
+          <div class="song-list" id="songList"></div>
+        </div>
+        <div class="song-editor" id="songEditor">
+          <p class="empty-state">Select a song to edit it, or create a new one.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- MEDIA -->
+    <section id="mediaView" class="view">
+      <div class="page-heading">
+        <div><p class="eyebrow">Library</p><h1>Media<span class="accent-dot">.</span></h1><p class="subtitle">Images, video and audio for your slides.</p></div>
+        <div class="heading-actions"><label class="primary-button" style="cursor:pointer">＋ Upload media<input id="mediaUpload" type="file" multiple hidden></label></div>
+      </div>
+      <div class="section-head">
+        <div><h2>Library</h2><p>Search by file name or type.</p></div>
+        <div class="search-box"><span class="search-icon">⌕</span><input id="searchMedia" class="search-input" type="search" placeholder="Search media…" autocomplete="off"></div>
+      </div>
+      <div class="media-grid" id="mediaGrid"></div>
+    </section>
+
+    <!-- EDITOR -->
+    <section id="editorView" class="view">
+      <div class="editor-heading">
+        <div>
+          <button class="back-button" id="backToLibrary">← Library</button>
+          <p class="eyebrow">Presentation editor</p>
+          <h1 id="editorTitle" contenteditable="true" spellcheck="false">Untitled presentation</h1>
+        </div>
+        <div class="editor-actions" id="editorActions"></div>
+      </div>
+      <div class="editor-layout">
+        <div class="slide-col">
+          <div class="search-box"><span class="search-icon">⌕</span><input id="searchSlides" class="search-input" type="search" placeholder="Search slides…" autocomplete="off"></div>
+          <div class="slide-list" id="slideList"></div>
+        </div>
+        <div class="canvas-wrap">
+          <div class="slide-canvas" id="slideCanvas">
+            <div class="canvas-orb orb-one"></div>
+            <div class="canvas-orb orb-two"></div>
+            <p class="canvas-kicker" id="canvasKicker">PRESENTATION</p>
+            <h2 id="canvasTitle"></h2>
+            <p class="canvas-footer"><span id="canvasFooter"></span> <span id="canvasCount">01</span></p>
+          </div>
+          <div class="canvas-toolbar" id="canvasToolbar">
+            <button data-tool="undo" title="Undo">↶</button>
+            <button data-tool="redo" title="Redo">↷</button>
+            <span></span>
+            <button data-tool="aspect" title="Toggle 16:9 / 4:3">▭</button>
+            <b id="aspectLabel">16:9</b>
+            <button data-tool="add" title="Add slide">＋</button>
+            <button data-tool="dup" title="Duplicate slide">⧉</button>
+            <button data-tool="up" title="Move slide up">↑</button>
+            <button data-tool="down" title="Move slide down">↓</button>
+            <button data-tool="del" title="Delete slide">⌫</button>
+          </div>
+        </div>
+        <aside class="inspector" id="inspector"></aside>
+      </div>
+      <div class="control-room-lower">
+        <section class="room-panel media-panel">
+          <div class="room-tabs"><b>Media Files</b><span>Current presentation</span></div>
+          <div class="media-toolbar"><button id="mediaAdd" title="Add image slide">＋</button><button id="mediaRefresh" title="Refresh">↻</button><input id="mediaFilter" placeholder="Filter slides…"></div>
+          <div class="media-tree" id="mediaTree"></div>
+        </section>
+        <section class="room-panel program-panel">
+          <div class="room-tabs"><b>Program</b><span>Slide order</span><small id="queueStatus">LIVE PREVIEW</small></div>
+          <div id="planBar"></div>
+          <div class="program-toolbar">
+            <button id="sendSelected">▶ Send live</button>
+            <button id="queueAdd">＋ Add slide</button>
+            <button id="queueBlank">■ Blank</button>
+          </div>
+          <div id="upNext"></div>
+          <div id="queueRows"></div>
+        </section>
+      </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section id="settingsView" class="view settings-view">
+      <p class="eyebrow">Workspace settings</p>
+      <h1>Settings<span class="accent-dot">.</span></h1>
+      <p class="subtitle">Account, storage and presentation preferences.</p>
+      <div class="settings-panel" id="settingsPanel"></div>
+      <section id="adminPanel"></section>
+    </section>
+  </main>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal" id="modal"><button class="modal-close" id="modalClose" aria-label="Close">×</button><div id="modalContent"></div></div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<input id="backgroundInput" type="file" accept="image/*" hidden>
+<script src="app.js?v=26"></script>
+</body>
+</html>

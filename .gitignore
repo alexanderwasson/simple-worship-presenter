@@ -1,0 +1,42 @@
+# ---------------------------------------------------------------
+# Simple Worship Presenter — never commit these
+# ---------------------------------------------------------------
+
+# Dependencies (recreate with `npm ci`)
+node_modules/
+
+# Runtime data: the database and every user's uploaded media.
+# This is live church content. It is created on the server and must
+# never enter a public repository.
+data/
+*.sqlite
+*.sqlite-*
+*.db
+uploads/
+
+# Secrets. Only .env.example is committed.
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Tests and tooling
+coverage/
+.nyc_output/
+.tmp/
+tmp/
+
+# OS and editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp

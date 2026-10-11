@@ -1,0 +1,152 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Self-hosting — Simple Worship Presenter</title>
+<meta name="description" content="Install Simple Worship Presenter on your own server. One Node.js process, one data folder, no external service, no licence key.">
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .site-nav{display:flex;align-items:center;gap:26px;padding:22px 5.5%;border-bottom:1px solid var(--line);background:#fff}
+  .site-nav .brand{padding:0}.site-links{margin-left:auto;display:flex;align-items:center;gap:22px}
+  .site-links a{color:#6c6b64;font:600 12px Manrope;text-decoration:none}.site-links a:hover{color:var(--orange)}
+  .page-hero{padding:64px 5.5% 10px;max-width:1000px;margin:0 auto}
+  .page-hero h1{font-size:clamp(31px,4.2vw,50px);letter-spacing:-2px;margin:10px 0 14px}
+  .page-hero p{color:#7c7b73;font-size:16px;line-height:1.72;max-width:700px}
+  .doc{max-width:1000px;margin:0 auto;padding:24px 5.5% 70px}
+  .doc h2{font-size:24px;letter-spacing:-1.1px;margin:44px 0 12px}
+  .doc h3{font-size:15px;margin:26px 0 8px}
+  .doc p,.doc li{color:#6f6e67;font-size:13.5px;line-height:1.85}
+  .doc code{background:#f1efeb;border:1px solid var(--line);border-radius:4px;padding:1px 6px;font:12px 'DM Mono'}
+  .code-block{background:#20242b;color:#d9e2e8;border-radius:10px;padding:20px 22px;font:12px/1.95 'DM Mono';overflow:auto;margin:14px 0}
+  .code-block .c{color:#7c8b96}
+  table{width:100%;border-collapse:collapse;margin:14px 0}
+  th,td{text-align:left;padding:11px 13px;border-bottom:1px solid var(--line);font-size:12.5px;vertical-align:top}
+  th{color:#4b4a45;font-size:11px;text-transform:uppercase;letter-spacing:.8px}
+  td code{white-space:nowrap}
+  .callout{background:#eef3f1;border-left:3px solid #6a9b80;padding:16px 20px;border-radius:0 8px 8px 0;font-size:13px;line-height:1.8;color:#54625a}
+  .site-footer{border-top:1px solid var(--line);padding:34px 5.5%;display:flex;flex-wrap:wrap;gap:18px;align-items:center;color:#96958e;font-size:11px}
+  .site-footer nav{margin-left:auto;display:flex;gap:19px;flex-wrap:wrap}.site-footer a{color:#96958e;text-decoration:none}
+</style>
+</head>
+<body>
+<header class="site-nav">
+  <a class="brand" href="index.html"><span class="brand-mark"><i></i><i></i><i></i></span><span>Simple Worship Presenter</span></a>
+  <nav class="site-links"><a href="features.html">Features</a><a href="self-hosting.html">Self-hosting</a><a href="docs.html">Docs</a><a class="primary-button" href="https://app.simpleworshippresenter.com" data-app-link>Open the app</a></nav>
+</header>
+
+<section class="page-hero">
+  <p class="eyebrow">Self-hosting</p>
+  <h1>Run it on your own server.</h1>
+  <p>Self-hosting is a first-class option, not a downgrade. There is no licence key, no subscription and no call home to us. A self-hosted instance performs every core presentation function on its own.</p>
+</section>
+
+<div class="doc">
+  <h2>Requirements</h2>
+  <ul>
+    <li>Node.js 18 or newer</li>
+    <li>A persistent directory for user data (database and uploads)</li>
+    <li>A reverse proxy with HTTPS for anything reachable from the internet (CloudPanel, nginx or Caddy)</li>
+    <li>About 512 MB of RAM for a small church instance</li>
+  </ul>
+
+  <h2>Install</h2>
+  <div class="code-block"><span class="c"># 1. Get the code</span>
+git clone https://github.com/alexanderwasson/simple-worship-presenter
+cd simple-worship-presenter
+
+<span class="c"># 2. Install dependencies exactly as locked</span>
+npm ci
+
+<span class="c"># 3. Configure</span>
+cp .env.example .env
+<span class="c"># edit SESSION_SECRET and DATA_DIR</span>
+
+<span class="c"># 4. Run</span>
+npm start</div>
+
+  <h2>Environment variables</h2>
+  <table>
+    <tr><th>Variable</th><th>Default</th><th>Description</th></tr>
+    <tr><td><code>PORT</code></td><td><code>3000</code></td><td>HTTP port for the application.</td></tr>
+    <tr><td><code>DATA_DIR</code></td><td><code>./data</code></td><td>Persistent data root. Keep this outside the release directory so updates never overwrite user data.</td></tr>
+    <tr><td><code>SESSION_SECRET</code></td><td>—</td><td><strong>Required in production.</strong> Long random string used to sign session tokens.</td></tr>
+    <tr><td><code>NODE_ENV</code></td><td><code>development</code></td><td>Set to <code>production</code> to require HTTPS cookies and reject default secrets.</td></tr>
+    <tr><td><code>TRUST_PROXY</code></td><td><code>0</code></td><td>Set <code>1</code> behind CloudPanel/nginx so client IPs and secure cookies behave correctly.</td></tr>
+    <tr><td><code>INSTANCE_NAME</code></td><td><code>Simple Worship Presenter</code></td><td>Name shown in the interface and health output.</td></tr>
+    <tr><td><code>PUBLIC_URL</code></td><td>—</td><td>Public base URL of the instance, if any.</td></tr>
+    <tr><td><code>DEFAULT_QUOTA_BYTES</code></td><td><code>262144000</code></td><td>Storage quota for new accounts (250 MB by default).</td></tr>
+    <tr><td><code>MAX_UPLOAD_BYTES</code></td><td><code>262144000</code></td><td>Maximum single upload size.</td></tr>
+    <tr><td><code>ALLOW_REGISTRATION</code></td><td><code>1</code></td><td>Set to <code>0</code> to close public registration on your instance.</td></tr>
+    <tr><td><code>LOG_LEVEL</code></td><td><code>info</code></td><td><code>debug</code>, <code>info</code>, <code>warn</code> or <code>error</code>.</td></tr>
+    <tr><td><code>RATE_LIMIT_MAX_AUTH</code></td><td><code>10</code></td><td>Sign-in attempts per minute per IP address.</td></tr>
+  </table>
+
+  <h2>First run</h2>
+  <ol>
+    <li>Open the site in a browser.</li>
+    <li>You will be asked to create the <strong>administrator account</strong>. This is only offered while the instance has no users.</li>
+    <li>Sign in, then add accounts for your team, or let them self-register.</li>
+  </ol>
+  <div class="callout">The administrator account is a normal account with one extra ability: changing the instance default storage quota in the API. All accounts are isolated from each other at the data layer.</div>
+
+  <h2>Deploying with CloudPanel</h2>
+  <ol>
+    <li>Create a <strong>Node.js App</strong> site and select Node 18+.</li>
+    <li>Set the application root to the project folder and the startup file to <code>server.js</code>.</li>
+    <li>Run <code>npm ci</code> in the application directory.</li>
+    <li>Set <code>PORT</code> to the port CloudPanel assigns.</li>
+    <li>Set <code>DATA_DIR</code> to a persistent path outside the release, for example <code>/home/cloudpanel/htdocs/simple-worship-data</code>.</li>
+    <li>Set a long random <code>SESSION_SECRET</code> and <code>TRUST_PROXY=1</code>.</li>
+    <li>Enable SSL in CloudPanel for your domain.</li>
+  </ol>
+
+  <h2>Deploying with Docker</h2>
+  <div class="code-block"><span class="c"># build and start</span>
+docker compose up -d --build
+
+<span class="c"># the data volume persists across upgrades</span>
+docker compose down &amp;&amp; docker compose up -d --build</div>
+  <p>The included <code>docker-compose.yml</code> mounts a named volume at the data directory and exposes a health check at <code>/api/health</code>.</p>
+
+  <h2>Upgrades</h2>
+  <ol>
+    <li>Back up <code>DATA_DIR</code>.</li>
+    <li>Fetch the new release.</li>
+    <li>Run <code>npm ci</code>.</li>
+    <li>Restart the process.</li>
+  </ol>
+  <p>Database schema changes run automatically as numbered migrations on startup. Migrations are additive and never delete existing user data. If a data file cannot be read, the instance preserves a copy named <code>*.corrupt-&lt;timestamp&gt;</code> rather than overwriting it.</p>
+
+  <h2>Backup and restore</h2>
+  <div class="code-block"><span class="c"># back up everything</span>
+tar -czf swp-backup-$(date +%F).tar.gz "$DATA_DIR"
+
+<span class="c"># restore</span>
+tar -xzf swp-backup-YYYY-MM-DD.tar.gz</div>
+  <p>Stopping the process before copying gives the most consistent snapshot, because the database is a single JSON document rewritten atomically on save.</p>
+
+  <h2>Health checks</h2>
+  <p><code>GET /api/health</code> returns the instance name, version, schema version and uptime. Use it for load balancer and monitoring checks.</p>
+
+  <h2>Browser display limitations</h2>
+  <p>Browser applications cannot force a specific physical monitor on every operating system. The supported workflow is to open the audience display window and drag it to the projector, then press <kbd>F</kbd> for fullscreen. Windows, macOS and Linux may each handle this slightly differently.</p>
+
+  <h2>Troubleshooting</h2>
+  <ul>
+    <li><strong>Session cookies are not kept behind a proxy.</strong> Set <code>TRUST_PROXY=1</code> and serve over HTTPS.</li>
+    <li><strong>Uploads fail with 413.</strong> Raise <code>MAX_UPLOAD_BYTES</code> and the user quota, and check the reverse proxy body size limit.</li>
+    <li><strong>The audience window stays blank.</strong> Reload both windows; the display announces itself when it loads so the operator can resend the current slide.</li>
+    <li><strong>The data file will not load.</strong> Look for a preserved <code>*.corrupt-*</code> file next to it and restore from backup.</li>
+  </ul>
+</div>
+
+<footer class="site-footer">
+  <a class="brand" href="index.html"><span class="brand-mark"><i></i><i></i><i></i></span><span>Simple Worship Presenter</span></a>
+  <span>Independent software by <a href="https://alexanderwasson.dev/" rel="noreferrer">Alexander Wasson</a>.</span>
+  <nav><a href="features.html">Features</a><a href="self-hosting.html">Self-hosting</a><a href="docs.html">Docs</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></nav>
+</footer>
+<script src="site.js" defer></script>
+</body>
+</html>

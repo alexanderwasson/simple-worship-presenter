@@ -1,0 +1,170 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simple Worship Presenter — free worship presentation software</title>
+<meta name="description" content="Free, browser-based worship presentation software. Build service plans, organise songs and media, and project lyrics to a second screen. Self-host it yourself.">
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .site-nav{display:flex;align-items:center;gap:26px;padding:22px 5.5%;border-bottom:1px solid var(--line);background:#fff}
+  .site-nav .brand{padding:0}
+  .site-links{margin-left:auto;display:flex;align-items:center;gap:22px}
+  .site-links a{color:#6c6b64;font:600 12px Manrope;text-decoration:none}
+  .site-links a:hover{color:var(--orange)}
+  .hero{padding:86px 5.5% 70px;background:linear-gradient(140deg,#f7f5f1,#fff)}
+  .hero-inner{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:1.05fr .95fr;gap:54px;align-items:center}
+  .hero h1{font-size:clamp(38px,5.2vw,68px);line-height:1.03;letter-spacing:-2.6px;margin:14px 0 20px}
+  .hero h1 em{font-family:Georgia,serif;font-weight:400;color:var(--orange)}
+  .hero p.lead{font-size:17px;line-height:1.65;color:#6f6e67;max-width:520px}
+  .hero-actions{display:flex;gap:12px;margin-top:30px;flex-wrap:wrap}
+  .trust-row{display:flex;gap:26px;margin-top:34px;flex-wrap:wrap}
+  .trust-row div{font-size:11px;color:#8d8c85}
+  .trust-row strong{display:block;font-size:19px;color:var(--ink);letter-spacing:-.7px}
+  .hero-visual{border-radius:14px;overflow:hidden;box-shadow:0 28px 70px #2c261924;border:1px solid var(--line)}
+  .mock{background:#20242b;padding:16px;display:grid;gap:11px}
+  .mock-bar{display:flex;gap:6px;align-items:center;background:#2c323b;border-radius:6px;padding:8px 10px}
+  .mock-bar i{width:8px;height:8px;border-radius:50%;background:#4d5561}
+  .mock-bar span{margin-left:10px;font:9px 'DM Mono';color:#79828d}
+  .mock-stage{background:linear-gradient(135deg,#18364d,#406b7d);border-radius:8px;padding:42px 30px;min-height:190px;color:#fff}
+  .mock-stage h3{margin:0;font-size:26px;letter-spacing:-1.2px;line-height:1.2}
+  .mock-stage h3 em{font-family:Georgia,serif;font-style:italic;font-weight:400}
+  .mock-stage small{display:block;margin-top:16px;font:8px 'DM Mono';color:#b8d3e0}
+  .mock-row{display:flex;gap:9px}
+  .mock-tile{flex:1;height:52px;border-radius:5px;background:#333b46;border:1px solid #414b58}
+  .mock-tile.on{background:#4b5a68;border-color:#6e8698}
+  .section{padding:72px 5.5%;max-width:1180px;margin:0 auto}
+  .section-head{max-width:640px;margin-bottom:38px}
+  .section-head h2{font-size:clamp(26px,3.2vw,40px);letter-spacing:-1.6px;margin:0 0 12px}
+  .section-head p{color:#7b7a72;font-size:15px;line-height:1.7;margin:0}
+  .feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .feature-card{background:#fff;border:1px solid var(--line);border-radius:11px;padding:26px}
+  .feature-card .icon{width:38px;height:38px;border-radius:9px;background:#fff0e8;color:var(--orange);display:grid;place-items:center;font-size:17px;margin-bottom:15px}
+  .feature-card h3{margin:0 0 8px;font-size:15px}
+  .feature-card p{margin:0;color:#83827a;font-size:12.5px;line-height:1.72}
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:52px;align-items:center}
+  .steps{counter-reset:s;display:grid;gap:18px}
+  .step{display:flex;gap:15px}
+  .step i{flex:0 0 auto;width:27px;height:27px;border-radius:50%;background:var(--ink);color:#fff;font:600 11px 'DM Mono';display:grid;place-items:center;font-style:normal}
+  .step h4{margin:2px 0 5px;font-size:13.5px}
+  .step p{margin:0;color:#84837b;font-size:12px;line-height:1.7}
+  .code-block{background:#20242b;color:#d9e2e8;border-radius:10px;padding:20px 22px;font:11.5px/1.95 'DM Mono';overflow:auto}
+  .code-block .c{color:#7c8b96}
+  .cta{margin:0 5.5% 80px;background:linear-gradient(135deg,#20242b,#2d3946);border-radius:16px;padding:56px;text-align:center;color:#fff}
+  .cta h2{font-size:clamp(26px,3.4vw,42px);letter-spacing:-1.7px;margin:0 0 14px}
+  .cta p{color:#a9b5be;max-width:520px;margin:0 auto 26px;font-size:14px;line-height:1.7}
+  .site-footer{border-top:1px solid var(--line);padding:34px 5.5%;display:flex;flex-wrap:wrap;gap:18px;align-items:center;color:#96958e;font-size:11px}
+  .site-footer nav{margin-left:auto;display:flex;gap:19px;flex-wrap:wrap}
+  .site-footer a{color:#96958e;text-decoration:none}
+  .site-footer a:hover{color:var(--orange)}
+  @media(max-width:900px){.hero-inner,.split{grid-template-columns:1fr}.feature-grid{grid-template-columns:1fr 1fr}.hero{padding-top:52px}}
+  @media(max-width:620px){.feature-grid{grid-template-columns:1fr}.site-links a.hide-sm{display:none}.cta{padding:36px 22px}}
+</style>
+</head>
+<body>
+<header class="site-nav">
+  <a class="brand" href="index.html"><span class="brand-mark"><i></i><i></i><i></i></span><span>Simple Worship Presenter</span></a>
+  <nav class="site-links">
+    <a href="features.html" class="hide-sm">Features</a>
+    <a href="self-hosting.html" class="hide-sm">Self-hosting</a>
+    <a href="docs.html" class="hide-sm">Docs</a>
+    <a href="https://app.simpleworshippresenter.com" data-app-link>Sign in</a>
+    <a class="primary-button" href="https://app.simpleworshippresenter.com" data-app-link>Open the app</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <div class="hero-inner">
+    <div>
+      <p class="eyebrow">Free · Open · Self-hostable</p>
+      <h1>Present the words.<br><em>Not the software.</em></h1>
+      <p class="lead">Simple Worship Presenter is a browser-based worship presentation tool built around the workflow church teams already know: a control screen for the operator, a clean screen for the room, and a service plan that runs in order.</p>
+      <div class="hero-actions">
+        <a class="primary-button" href="https://app.simpleworshippresenter.com" data-app-link>Start presenting &nbsp;→</a>
+        <a class="secondary-button" href="self-hosting.html">Run it on your own server</a>
+      </div>
+      <div class="trust-row">
+        <div><strong>250 MB</strong>free storage per account</div>
+        <div><strong>0</strong>licences or subscriptions</div>
+        <div><strong>100%</strong>your data, your server</div>
+      </div>
+    </div>
+    <div class="hero-visual" aria-hidden="true">
+      <div class="mock">
+        <div class="mock-bar"><i></i><i></i><i></i><span>File &nbsp; Edit &nbsp; View &nbsp; Slide &nbsp; Media &nbsp; Tools</span></div>
+        <div class="mock-stage">
+          <h3>Come as you are.<br><em>Leave a little lighter.</em></h3>
+          <small>VERSE 1 &nbsp;·&nbsp; 02 / 08</small>
+        </div>
+        <div class="mock-row"><div class="mock-tile on"></div><div class="mock-tile"></div><div class="mock-tile"></div><div class="mock-tile"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="section-head">
+    <p class="eyebrow">What it does</p>
+    <h2>Everything a Sunday needs, nothing it doesn't.</h2>
+    <p>Organise songs with proper verse and chorus sections, build a service plan for the day, and send lyrics to a second screen with one keystroke.</p>
+  </div>
+  <div class="feature-grid">
+    <div class="feature-card"><div class="icon">▤</div><h3>Service plans</h3><p>Group presentations into a plan with a date and notes. Launch the whole plan straight into presenter mode and walk it in order.</p></div>
+    <div class="feature-card"><div class="icon">♪</div><h3>Song library</h3><p>Store songs with author, copyright and CCLI details. Split lyrics into labelled sections and generate correctly spaced slides automatically.</p></div>
+    <div class="feature-card"><div class="icon">▧</div><h3>Media library</h3><p>Upload images, video and audio. Use any image as a slide or presentation background without re-uploading it every week.</p></div>
+    <div class="feature-card"><div class="icon">▷</div><h3>Live presenter</h3><p>A separate audience window that follows the operator live. Blank the screen, jump to any slide, and go fullscreen on the projector.</p></div>
+    <div class="feature-card"><div class="icon">⚙</div><h3>Self-hosted</h3><p>One Node.js process and a data folder. No external service, no account with us, no API key. Your server keeps everything.</p></div>
+    <div class="feature-card"><div class="icon">✓</div><h3>Clear licensing</h3><p>Add your church CCLI licence to the workspace. Bring your own content and the rights to use it — we never ship copyrighted lyrics.</p></div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="split">
+    <div>
+      <p class="eyebrow">Self-hosting</p>
+      <h2 style="font-size:clamp(25px,3vw,38px);letter-spacing:-1.5px;margin:0 0 16px">Your church, your server, your data.</h2>
+      <div class="steps">
+        <div class="step"><i>1</i><div><h4>Install</h4><p>Clone the project, run <code>npm ci</code>, and copy the example environment file.</p></div></div>
+        <div class="step"><i>2</i><div><h4>Configure</h4><p>Set a session secret, a persistent data directory, and the storage quota for your accounts.</p></div></div>
+        <div class="step"><i>3</i><div><h4>Create your administrator</h4><p>Open the site once and complete the first-run setup. Then add your team's accounts.</p></div></div>
+        <div class="step"><i>4</i><div><h4>Present</h4><p>Point a reverse proxy at it for HTTPS and use any modern browser on the control laptop and projector.</p></div></div>
+      </div>
+    </div>
+    <div class="code-block"><span class="c"># install</span>
+git clone https://github.com/alexanderwasson/simple-worship-presenter
+cd simple-worship-presenter
+npm ci
+
+<span class="c"># configure</span>
+cp .env.example .env
+<span class="c"># edit SESSION_SECRET and DATA_DIR</span>
+
+<span class="c"># run</span>
+npm start</div>
+  </div>
+</section>
+
+<div class="cta">
+  <h2>Ready for this Sunday?</h2>
+  <p>Create a free account with 250 MB of storage, or install it yourself and set whatever limits you like.</p>
+  <a class="primary-button" href="https://app.simpleworshippresenter.com" data-app-link>Open Simple Worship Presenter &nbsp;→</a>
+</div>
+
+<footer class="site-footer">
+  <a class="brand" href="index.html"><span class="brand-mark"><i></i><i></i><i></i></span><span>Simple Worship Presenter</span></a>
+  <span>Independent software by <a href="https://alexanderwasson.dev/" rel="noreferrer">Alexander Wasson</a> · Not affiliated with any other presentation product.</span>
+  <nav>
+    <a href="features.html">Features</a>
+    <a href="self-hosting.html">Self-hosting</a>
+    <a href="docs.html">Docs</a>
+    <a href="privacy.html">Privacy</a>
+    <a href="terms.html">Terms</a>
+  </nav>
+</footer>
+<script src="site.js" defer></script>
+</body>
+</html>

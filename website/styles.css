@@ -1,0 +1,110 @@
+/* Simple Worship Presenter — public website styles.
+   This directory is a standalone static site: deploy it to the apex domain.
+   It is intentionally independent of the application stylesheet. */
+
+:root {
+  --ink: #20201d;
+  --muted: #77766f;
+  --line: #e9e7e1;
+  --paper: #f8f8f5;
+  --white: #fff;
+  --orange: #e96e3d;
+  --orange-dark: #cf5930;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: Manrope, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--orange); }
+
+/* ---- shared brand primitives ---- */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  color: var(--ink);
+  font-weight: 800;
+  font-size: 19px;
+  letter-spacing: -0.7px;
+  text-decoration: none;
+  padding: 0 11px;
+}
+.brand > span:last-child { font-weight: 500; color: #8c8b84; }
+.brand-mark { width: 26px; height: 26px; display: flex; align-items: flex-end; gap: 3px; flex: 0 0 auto; }
+.brand-mark i {
+  display: block;
+  width: 6px;
+  border-radius: 4px;
+  background: var(--orange);
+  transform: skew(-18deg);
+}
+.brand-mark i:nth-child(1) { height: 13px; }
+.brand-mark i:nth-child(2) { height: 21px; }
+.brand-mark i:nth-child(3) { height: 16px; }
+
+.eyebrow {
+  font-family: "DM Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: #92918a;
+  margin: 0 0 10px;
+}
+
+.primary-button,
+.secondary-button {
+  display: inline-block;
+  border: 0;
+  border-radius: 7px;
+  padding: 12px 18px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  line-height: 1.2;
+}
+.primary-button {
+  background: var(--orange);
+  color: #fff;
+  box-shadow: 0 5px 15px #e96e3d30;
+}
+.primary-button:hover { background: var(--orange-dark); }
+.secondary-button {
+  background: #fff;
+  border: 1px solid var(--line);
+  color: #55544f;
+}
+.secondary-button:hover { border-color: #d9b4a4; color: var(--orange-dark); }
+
+kbd {
+  background: #f4f2ee;
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-family: "DM Mono", ui-monospace, monospace;
+  font-size: 11px;
+  color: #555;
+}
+code {
+  background: #f1efeb;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-family: "DM Mono", ui-monospace, monospace;
+  font-size: 12px;
+}
+
+@media (max-width: 620px) {
+  .brand { font-size: 16px; }
+}

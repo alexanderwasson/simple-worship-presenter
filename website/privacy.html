@@ -1,0 +1,72 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy — Simple Worship Presenter</title>
+<meta name="description" content="How Simple Worship Presenter handles your account, your content and your church data.">
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .site-nav{display:flex;align-items:center;gap:26px;padding:22px 5.5%;border-bottom:1px solid var(--line);background:#fff}
+  .site-nav .brand{padding:0}.site-links{margin-left:auto;display:flex;align-items:center;gap:22px}
+  .site-links a{color:#6c6b64;font:600 12px Manrope;text-decoration:none}
+  .doc{max-width:820px;margin:0 auto;padding:56px 5.5% 80px}
+  .doc h1{font-size:clamp(30px,4vw,46px);letter-spacing:-1.9px;margin:8px 0 10px}
+  .doc h2{font-size:20px;letter-spacing:-.8px;margin:38px 0 10px}
+  .doc p,.doc li{color:#6f6e67;font-size:13.5px;line-height:1.9}
+  .doc .eyebrow{margin-bottom:6px}
+  .site-footer{border-top:1px solid var(--line);padding:34px 5.5%;display:flex;flex-wrap:wrap;gap:18px;align-items:center;color:#96958e;font-size:11px}
+  .site-footer nav{margin-left:auto;display:flex;gap:19px;flex-wrap:wrap}.site-footer a{color:#96958e;text-decoration:none}
+</style>
+</head>
+<body>
+<header class="site-nav">
+  <a class="brand" href="index.html"><span class="brand-mark"><i></i><i></i><i></i></span><span>Simple Worship Presenter</span></a>
+  <nav class="site-links"><a href="features.html">Features</a><a href="self-hosting.html">Self-hosting</a><a href="docs.html">Docs</a><a class="primary-button" href="https://app.simpleworshippresenter.com" data-app-link>Open the app</a></nav>
+</header>
+
+<main class="doc">
+  <p class="eyebrow">Privacy</p>
+  <h1>Privacy policy</h1>
+  <p><strong>Last updated: 10 October 2026.</strong></p>
+
+  <h2>What we collect</h2>
+  <p>On the hosted service we store the account details you provide (name, email, a hashed password) and the content you create: presentations, slides, songs, service plans and uploaded media. Server logs record request method, path, status and timing for operational purposes.</p>
+
+  <h2>What we do not do</h2>
+  <ul>
+    <li>We do not sell or rent your data.</li>
+    <li>We do not use your lyrics, media or account content to train AI models.</li>
+    <li>We do not read your presentations.</li>
+    <li>We do not require an account with us to self-host the software.</li>
+    <li>A self-hosted instance sends nothing to us at all.</li>
+  </ul>
+
+  <h2>AI disclosure</h2>
+  <p>Parts of the software itself were produced with AI-assisted development and reviewed by a human before release. That applies to source code and interface copy only. AI is not used to generate, process or store the worship content you enter. If you later choose a feature that generates text for you, it will be clearly labelled and optional.</p>
+
+  <h2>Where your data lives</h2>
+  <p>On the hosted service, data is stored on the servers running app.simpleworshippresenter.com. When you self-host, your data lives entirely on the machine you control — database and uploaded files are stored in a single directory you configure and back up.</p>
+
+  <h2>Retention and deletion</h2>
+  <p>You can delete your account from Settings. That permanently removes your presentations, songs, service plans, media and files, and releases the storage they occupied. Backups may retain data for a limited period before they rotate.</p>
+
+  <h2>Security</h2>
+  <p>Passwords are hashed with bcrypt and never stored in plain text. Sessions use signed, HttpOnly cookies. Every protected request is authorised server-side and scoped to your account. Rate limits are applied to sign-in endpoints. We recommend HTTPS for every deployment.</p>
+
+  <h2>Your rights</h2>
+  <p>You can request a copy of your data or its deletion by contacting the site owner. Churches using a self-hosted instance should contact their own administrator.</p>
+
+  <h2>Contact</h2>
+  <p>Simple Worship Presenter is created and maintained by Alexander Wasson at <a href="https://alexanderwasson.dev/">alexanderwasson.dev</a>.</p>
+</main>
+
+<footer class="site-footer">
+  <a class="brand" href="index.html"><span class="brand-mark"><i></i><i></i><i></i></span><span>Simple Worship Presenter</span></a>
+  <span>Independent software by <a href="https://alexanderwasson.dev/" rel="noreferrer">Alexander Wasson</a>.</span>
+  <nav><a href="features.html">Features</a><a href="self-hosting.html">Self-hosting</a><a href="docs.html">Docs</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></nav>
+</footer>
+<script src="site.js" defer></script>
+</body>
+</html>

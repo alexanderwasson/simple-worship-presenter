@@ -1,0 +1,145 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Documentation — Simple Worship Presenter</title>
+<meta name="description" content="How to use Simple Worship Presenter: service plans, songs, media, slides and the audience display.">
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .site-nav{display:flex;align-items:center;gap:26px;padding:22px 5.5%;border-bottom:1px solid var(--line);background:#fff}
+  .site-nav .brand{padding:0}.site-links{margin-left:auto;display:flex;align-items:center;gap:22px}
+  .site-links a{color:#6c6b64;font:600 12px Manrope;text-decoration:none}.site-links a:hover{color:var(--orange)}
+  .page-hero{padding:64px 5.5% 10px;max-width:1000px;margin:0 auto}
+  .page-hero h1{font-size:clamp(31px,4.2vw,50px);letter-spacing:-2px;margin:10px 0 14px}
+  .page-hero p{color:#7c7b73;font-size:16px;line-height:1.72;max-width:700px}
+  .doc{max-width:1000px;margin:0 auto;padding:24px 5.5% 70px}
+  .doc h2{font-size:23px;letter-spacing:-1.1px;margin:42px 0 12px}
+  .doc h3{font-size:15px;margin:24px 0 8px}
+  .doc p,.doc li{color:#6f6e67;font-size:13.5px;line-height:1.85}
+  .doc kbd{background:#f4f2ee;border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:2px 7px;font:11px 'DM Mono'}
+  .doc code{background:#f1efeb;border:1px solid var(--line);border-radius:4px;padding:1px 6px;font:12px 'DM Mono'}
+  table{width:100%;border-collapse:collapse;margin:14px 0}
+  th,td{text-align:left;padding:11px 13px;border-bottom:1px solid var(--line);font-size:12.5px;vertical-align:top}
+  th{color:#4b4a45;font-size:11px;text-transform:uppercase;letter-spacing:.8px}
+  .site-footer{border-top:1px solid var(--line);padding:34px 5.5%;display:flex;flex-wrap:wrap;gap:18px;align-items:center;color:#96958e;font-size:11px}
+  .site-footer nav{margin-left:auto;display:flex;gap:19px;flex-wrap:wrap}.site-footer a{color:#96958e;text-decoration:none}
+</style>
+</head>
+<body>
+<header class="site-nav">
+  <a class="brand" href="index.html"><span class="brand-mark"><i></i><i></i><i></i></span><span>Simple Worship Presenter</span></a>
+  <nav class="site-links"><a href="features.html">Features</a><a href="self-hosting.html">Self-hosting</a><a href="docs.html">Docs</a><a class="primary-button" href="https://app.simpleworshippresenter.com" data-app-link>Open the app</a></nav>
+</header>
+
+<section class="page-hero">
+  <p class="eyebrow">Documentation</p>
+  <h1>How to use Simple Worship Presenter.</h1>
+  <p>The workspace is divided into a library, a song library, a media library, the presentation editor and the audience display.</p>
+</section>
+
+<div class="doc">
+  <h2>The weekly workflow</h2>
+  <ol>
+    <li><strong>Write or import the songs</strong> in the Songs library, splitting lyrics into labelled sections.</li>
+    <li><strong>Generate slides</strong> from a song. Choose how many lyric lines appear per slide.</li>
+    <li><strong>Build the service plan</strong> and add the presentations in order.</li>
+    <li><strong>Open the audience display</strong> on the projector and walk the plan from the control window.</li>
+  </ol>
+
+  <h2>Service plans</h2>
+  <p>A service plan groups presentations into a running order for a date. Removing a presentation from a plan never deletes the presentation itself.</p>
+  <ul>
+    <li>Create a plan from <strong>File → New service plan</strong> or the library button.</li>
+    <li>Add presentations and reorder them with the arrow buttons — the running order is saved exactly as shown.</li>
+    <li>Add an optional note for the team.</li>
+    <li><strong>Save &amp; present</strong> saves the plan, opens the audience display and starts the plan from item one.</li>
+    <li>Once a plan is live, the editor shows the running order with the current item marked <em>LIVE</em>. Jump to any item, or use <em>Previous item</em> / <em>Next item</em>.</li>
+    <li>Advancing past the last slide of an item moves to the first slide of the next item, so a whole service can be walked with <kbd>Space</kbd>.</li>
+    <li>Duplicate a plan to reuse it for the following week.</li>
+  </ul>
+
+  <h2>Songs</h2>
+  <p>Each song stores title, artist, author, copyright, CCLI number, tags and an ordered list of sections. Sections are labelled however you like — Verse 1, Chorus, Bridge, Ending, Tag.</p>
+  <ul>
+    <li>Reorder sections with the arrow buttons.</li>
+    <li>Repeat a section by generating from a custom order.</li>
+    <li><strong>Generate slides</strong> creates a new presentation from the lyrics at four lines per slide.</li>
+    <li>Deleting a song never touches presentations already built from it.</li>
+  </ul>
+
+  <h2>Media</h2>
+  <p>Upload PNG, JPG, GIF, WebP images plus MP4 video and MP3/WAV/OGG audio. Files are validated by their actual content, not just the extension.</p>
+  <ul>
+    <li>Use <strong>Set as background</strong> to apply an image to the current presentation.</li>
+    <li>Deleting media releases the storage it used against your quota.</li>
+    <li>Only you can see your media; every request is checked against your account.</li>
+  </ul>
+
+  <h2>The editor</h2>
+  <table>
+    <tr><th>Action</th><th>Where</th></tr>
+    <tr><td>Add, duplicate, delete, reorder slides</td><td>Toolbar under the canvas, or the Slide menu</td></tr>
+    <tr><td>Undo / redo</td><td><kbd>Ctrl/Cmd</kbd> + <kbd>Z</kbd>, or <kbd>Ctrl/Cmd</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd></td></tr>
+    <tr><td>Change theme or upload a background</td><td>Slide design panel on the right</td></tr>
+    <tr><td>Toggle 16:9 / 4:3</td><td>Toolbar aspect button</td></tr>
+    <tr><td>Save</td><td>Autosaves as you type; <kbd>Ctrl/Cmd</kbd> + <kbd>S</kbd> forces a save</td></tr>
+    <tr><td>Rename</td><td>Click the presentation title</td></tr>
+  </table>
+
+  <h2>The audience display</h2>
+  <p>Choose <strong>Tools → Audience display</strong> or the <strong>Live</strong> button. A separate window opens for the projector.</p>
+  <ul>
+    <li>The control window drives it live: every slide selection is mirrored immediately.</li>
+    <li><strong>Blank</strong> turns the display black without losing your place.</li>
+    <li><kbd>F</kbd> toggles fullscreen on the display.</li>
+    <li>Drag the window to the projector first, then press <kbd>F</kbd>. Browsers cannot choose a physical monitor for you.</li>
+  </ul>
+
+  <h2>Search</h2>
+  <p>Every collection has its own search box — presentations, service plans, songs, media and the slide list. Searches match titles, lyrics, notes, credits and file names as you type.</p>
+  <ul>
+    <li>Press <kbd>Ctrl</kbd> + <kbd>K</kbd> anywhere in the workspace to open the global search.</li>
+    <li>Global search covers presentations, songs, service plans and media at once.</li>
+    <li>Choose a result to jump straight to it.</li>
+    <li><kbd>Esc</kbd> clears the results.</li>
+  </ul>
+
+  <h2>Typography</h2>
+  <p>Each slide carries its own text formatting, so a title slide and a lyric slide can look different inside the same presentation.</p>
+  <ul>
+    <li><strong>14 font families</strong>: Manrope, Inter, Montserrat, Poppins, Source Sans 3, Oswald, Bebas Neue, Georgia, Playfair Display, Lora, Merriweather, Libre Baskerville, Roboto Slab and DM Mono.</li>
+    <li><strong>Text size</strong> from 18 to 160 points, scaled proportionally so the editor and the projector match.</li>
+    <li><strong>Weight</strong> toggle for regular or bold.</li>
+    <li><strong>Text colour</strong> with a colour picker.</li>
+    <li><strong>Horizontal alignment</strong>: left, centre or right.</li>
+    <li><strong>Vertical position</strong>: top, middle or bottom of the slide.</li>
+    <li><strong>Animation</strong> when the slide appears: none, fade, rise, blur in, scale up, or word by word.</li>
+  </ul>
+  <p>Formatting is saved with the slide and travels to the audience display automatically. Animations replay each time a slide is shown, and are disabled automatically for anyone with reduced motion enabled at the operating system level.</p>
+
+  <h2>Keyboard shortcuts</h2>
+  <table>
+    <tr><th>Shortcut</th><th>Effect</th></tr>
+    <tr><td><kbd>Space</kbd> / <kbd>→</kbd></td><td>Next slide — works in both the control and audience windows</td></tr>
+    <tr><td><kbd>←</kbd></td><td>Previous slide</td></tr>
+    <tr><td><kbd>Space</kbd> at the end of an item</td><td>Advance to the next item in the service plan</td></tr>
+    <tr><td><kbd>F</kbd></td><td>Fullscreen the audience display</td></tr>
+    <tr><td><kbd>Ctrl/Cmd</kbd> + <kbd>S</kbd></td><td>Save the current presentation</td></tr>
+    <tr><td><kbd>Ctrl/Cmd</kbd> + <kbd>Z</kbd></td><td>Undo</td></tr>
+    <tr><td><kbd>Esc</kbd></td><td>Close dialogs and menus</td></tr>
+  </table>
+
+  <h2>Content and licensing</h2>
+  <p>Simple Worship Presenter does not include any copyrighted song lyrics or Bible translations. Bring content you own or are licensed to use, and record your CCLI licence in Settings so it can appear in the presentation footer.</p>
+</div>
+
+<footer class="site-footer">
+  <a class="brand" href="index.html"><span class="brand-mark"><i></i><i></i><i></i></span><span>Simple Worship Presenter</span></a>
+  <span>Independent software by <a href="https://alexanderwasson.dev/" rel="noreferrer">Alexander Wasson</a>.</span>
+  <nav><a href="features.html">Features</a><a href="self-hosting.html">Self-hosting</a><a href="docs.html">Docs</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></nav>
+</footer>
+<script src="site.js" defer></script>
+</body>
+</html>

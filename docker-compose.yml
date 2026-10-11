@@ -1,0 +1,25 @@
+services:
+  simple-worship-presenter:
+    build: .
+    container_name: simple-worship-presenter
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      DATA_DIR: /data
+      SESSION_SECRET: "${SESSION_SECRET:?set SESSION_SECRET in your .env}"
+      INSTANCE_NAME: "${INSTANCE_NAME:-Simple Worship Presenter}"
+      PUBLIC_URL: "${PUBLIC_URL:-}"
+      DEFAULT_QUOTA_BYTES: "${DEFAULT_QUOTA_BYTES:-262144000}"
+      MAX_UPLOAD_BYTES: "${MAX_UPLOAD_BYTES:-262144000}"
+      ALLOW_REGISTRATION: "${ALLOW_REGISTRATION:-1}"
+      TRUST_PROXY: "${TRUST_PROXY:-1}"
+      LOG_LEVEL: "${LOG_LEVEL:-info}"
+    volumes:
+      # User data lives here. Back this directory up; app updates never touch it.
+      - swp-data:/data
+
+volumes:
+  swp-data:
