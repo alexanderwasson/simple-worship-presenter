@@ -1,4 +1,4 @@
-﻿# Deploying Simple Worship Presenter
+# Deploying Simple Worship Presenter
 
 This covers the production layout you asked for:
 

@@ -46,7 +46,7 @@ function migrate(data) {
 function load() {
   if (!fs.existsSync(DB_FILE)) return migrate(blank());
   try {
-    const parsed = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
+    const parsed = JSON.parse(fs.readFileSync(DB_FILE, 'utf8').replace(/^\uFEFF/, ''));
     return migrate(parsed);
   } catch (err) {
     // Preserve the unreadable file instead of overwriting it.

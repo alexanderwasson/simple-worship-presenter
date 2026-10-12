@@ -58,7 +58,7 @@ const LOOKUP = (() => {
 function translations() {
   if (!fs.existsSync(MANIFEST)) return [];
   try {
-    return JSON.parse(fs.readFileSync(MANIFEST, 'utf8')).translations || [];
+    return JSON.parse(fs.readFileSync(MANIFEST, 'utf8').replace(/^\uFEFF/, '')).translations || [];
   } catch {
     return [];
   }
@@ -76,7 +76,7 @@ function loadBook(translationId, bookId) {
   const file = bookFile(translationId, bookId);
   if (!fs.existsSync(file)) return null;
   try {
-    return JSON.parse(fs.readFileSync(file, 'utf8'));
+    return JSON.parse(fs.readFileSync(file, 'utf8').replace(/^\uFEFF/, ''));
   } catch {
     return null;
   }

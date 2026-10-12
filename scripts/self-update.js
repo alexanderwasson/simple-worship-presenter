@@ -138,7 +138,7 @@ async function main() {
 
   run('npm ci --omit=dev', 'Installing dependencies');
 
-  const pkg = JSON.parse(fs.readFileSync(path.join(APP_ROOT, 'package.json'), 'utf8'));
+  const pkg = JSON.parse(fs.readFileSync(path.join(APP_ROOT, 'package.json'), 'utf8').replace(/^\uFEFF/, ''));
   log('');
   log('  Done. Installed version: ' + pkg.version);
   log('  Restart the service to activate it:');

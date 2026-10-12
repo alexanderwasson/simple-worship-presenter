@@ -183,9 +183,13 @@ async function fetchArchive(target) {
   return fs.statSync(target).size;
 }
 
+// The source is a ZIP archive. Windows ships a tar that reads ZIP; Linux does
+// not, so extract with a real ZIP reader rather than shelling out.
 function extract(archive, into) {
   fs.mkdirSync(into, { recursive: true });
-  execSync(`tar -xf "${archive}" -C "${into}"`, { stdio: 'inherit', timeout: 300000 });
+  const AdmZip = require('adm-zip');
+  const zip = new AdmZip(archive);
+  zip.extractAllTo(into, true);
   return walk(into).filter(f => /\.(sfm|usfm|txt)$/i.test(f));
 }
 
@@ -212,7 +216,7 @@ async function main() {
       log('  run: node scripts/import-bible.js');
       process.exit(0);
     }
-    const list = JSON.parse(fs.readFileSync(manifest, 'utf8'));
+    const list = JSON.parse(fs.readFileSync(manifest, 'utf8').replace(/^\uFEFF/, ''));
     for (const t of list.translations) {
       log(`  ${t.id.padEnd(6)} ${t.name} — ${t.book_count} books, ${t.chapter_count} chapters, ${t.verse_count} verses`);
     }
@@ -226,15 +230,19 @@ async function main() {
   if (local) {
     if (!fs.existsSync(local)) fail('--from pointed at a file that does not exist: ' + local);
     log('  using local archive  : ' + local);
-    files = extract(local, tmp);
+    try {
+      files = extract(local, tmp);
+    } catch (err) {
+      fail('Could not unpack ' + local + ': ' + err.message);
+    }
   } else {
     const archive = path.join(tmp, 'source.zip');
     const size = await fetchArchive(archive);
     log('  downloaded ' + (size / 1048576).toFixed(2) + ' MB');
     try {
       files = extract(archive, tmp);
-    } catch {
-      fail('Could not unpack the archive. Use --from with a local copy of the USFM zip.');
+    } catch (err) {
+      fail('Could not unpack the archive: ' + err.message + '\n  Use --from with a local copy of the USFM zip.');
     }
   }
 

@@ -1,4 +1,4 @@
-﻿{
+{
   "name": "simple-worship-presenter",
   "version": "0.3.5",
   "private": true,
@@ -17,8 +17,11 @@
     "test:all": "npm run check && node scripts/smoke.js && npm run test:unit",
     "test:unit": "node --test test/auth.test.js test/quota.test.js test/content.test.js test/security.test.js test/data.test.js test/admin.test.js test/maintenance.test.js test/storage.test.js test/version.test.js test/self-update.test.js test/remote.test.js test/plan-nav.test.js test/bible.test.js"
   },
-  "engines": { "node": ">=18" },
+  "engines": {
+    "node": ">=18"
+  },
   "dependencies": {
+    "adm-zip": "^0.6.1",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.7",
     "express": "^4.21.2",
