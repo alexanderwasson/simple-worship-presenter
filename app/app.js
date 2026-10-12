@@ -160,12 +160,15 @@ function showAuth(mode) {
 }
 
 /* ------------------------------------------------------------- router */
-const views = { library: $('#libraryView'), songs: $('#songsView'), media: $('#mediaView'), editor: $('#editorView'), settings: $('#settingsView') };
+const views = { library: $('#libraryView'), songs: $('#songsView'), media: $('#mediaView'), bible: $('#bibleView'), editor: $('#editorView'), settings: $('#settingsView') };
 function showView(name) {
   Object.values(views).forEach(v => v.classList.remove('active-view'));
   (views[name] || views.library).classList.add('active-view');
   $$('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.view === name));
-  $('#crumbTitle').textContent = { library: 'Library', songs: 'Songs', media: 'Media', editor: state.deck ? state.deck.title : 'Editor', settings: 'Settings' }[name] || 'Library';
+  $('#crumbTitle').textContent = { library: 'Library', songs: 'Songs', media: 'Media', bible: 'Bible', editor: state.deck ? state.deck.title : 'Editor', settings: 'Settings' }[name] || 'Library';
+  // Bible data is fetched per account, so load it when the view is first opened
+  // rather than at page load when there may be no session yet.
+  if (name === 'bible' && typeof Bible !== 'undefined' && !Bible.books.length) Bible.init();
   window.scrollTo(0, 0);
 }
 
@@ -2004,9 +2007,11 @@ function openModal(kind) {
     <p>Simple Worship Presenter is an independent, self-hostable worship presentation tool created and maintained by <a href="https://alexanderwasson.dev/" rel="noreferrer">Alexander Wasson</a>. It is not affiliated with or a reproduction of any other presentation product.</p>
     <h3>AI transparency</h3>
     <p>Parts of this software were produced with AI-assisted development and reviewed by a human before release. AI is not used to generate or store your lyrics, media or account content. You remain responsible for holding the rights to any content you upload or present.</p>
+    <h3>Scripture</h3>
+    <p>This build includes the <strong>World English Bible (WEB)</strong>, a public domain translation. The name <em>World English Bible</em> is a trademark of eBible.org, and text that has been altered must not be called the World English Bible. When slides are generated from a passage the wording of the source is preserved.</p>
     <h3>Your content</h3>
-    <p>This software does not ship copyrighted song lyrics or Bible translations. Add only content you own or are licensed to use, and record your CCLI licence in Settings.</p>
-    <p><a href="/terms">Terms of Use</a> · <a href="/privacy">Privacy</a> · <a href="/self-hosting">Self-hosting</a></p>`);
+    <p>Scripture text is shared installation data and does not count against your storage allowance. Any song lyrics, media or other material you add remains yours — bring only content you own or are licensed to use, and record your CCLI licence in Settings.</p>
+    <p><a href="/terms">Terms of Use</a> &nbsp;&middot;&nbsp; <a href="/privacy">Privacy</a> &nbsp;&middot;&nbsp; <a href="/docs">Documentation</a> &nbsp;&middot;&nbsp; <a href="/self-hosting">Self-hosting</a></p>`);
 }
 
 /* --------------------------------------------------------------- wiring */
