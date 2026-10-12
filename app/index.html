@@ -20,6 +20,7 @@
       <button class="nav-item active" data-view="library"><span class="nav-icon">▦</span>Library</button>
       <button class="nav-item" data-view="songs"><span class="nav-icon">♪</span>Songs</button>
       <button class="nav-item" data-view="media"><span class="nav-icon">▧</span>Media</button>
+      <button class="nav-item" data-view="bible"><span class="nav-icon">✦</span>Bible</button>
       <button class="nav-item" data-view="settings"><span class="nav-icon">⚙</span>Settings</button>
     </nav>
     <div class="sidebar-bottom">
@@ -171,6 +172,53 @@
       </div>
     </section>
 
+    <section id="bibleView" class="view">
+      <div class="page-heading">
+        <div><p class="eyebrow">Library</p><h1>Bible<span class="accent-dot">.</span></h1><p class="subtitle">Look up a passage, select verses, and turn them into slides.</p></div>
+        <div class="heading-actions">
+          <select id="bibleTranslation" class="font-select" style="width:200px"></select>
+        </div>
+      </div>
+
+      <div class="bible-layout">
+        <aside class="bible-books">
+          <div class="search-box"><span class="search-icon">⌕</span><input id="bibleBookFilter" class="search-input" type="search" placeholder="Filter books…"></div>
+          <div class="bible-book-list" id="bibleBookList"></div>
+        </aside>
+
+        <div class="bible-chapter">
+          <div class="bible-chapter-head">
+            <button class="secondary-button" id="biblePrevChapter">←</button>
+            <div class="bible-chapter-title"><h2 id="bibleChapterTitle">Choose a book</h2><p id="bibleChapterMeta">World English Bible</p></div>
+            <button class="secondary-button" id="bibleNextChapter">→</button>
+          </div>
+          <div class="bible-heading" id="bibleChapterHeading"></div>
+          <div class="bible-verses" id="bibleVerses"><p class="empty-state">Select a book and chapter to begin.</p></div>
+        </div>
+
+        <aside class="bible-side">
+          <label class="modal-label">Find a reference</label>
+          <div class="bible-ref-row">
+            <input id="bibleRefInput" class="modal-input" placeholder="John 3:16">
+            <button class="secondary-button" id="bibleRefGo">Go</button>
+          </div>
+          <p class="legal-note bible-error" id="bibleRefError"></p>
+
+          <label class="modal-label">Search words</label>
+          <div class="bible-ref-row">
+            <input id="bibleSearchInput" class="modal-input" placeholder="shepherd">
+            <button class="secondary-button" id="bibleSearchGo">Search</button>
+          </div>
+          <div class="bible-results" id="bibleSearchResults"></div>
+
+          <label class="modal-label">Selection</label>
+          <div class="bible-selection" id="bibleSelection">
+            <p class="empty-state">Click verses to select them.</p>
+          </div>
+        </aside>
+      </div>
+    </section>
+
     <!-- SETTINGS -->
     <section id="settingsView" class="view settings-view">
       <p class="eyebrow">Workspace settings</p>
@@ -187,6 +235,6 @@
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <input id="backgroundInput" type="file" accept="image/*" hidden>
-<script src="app.js?v=37"></script>
+<script src="app.js?v=40"></script>
 </body>
 </html>

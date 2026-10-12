@@ -1,4 +1,4 @@
-'use strict';
+﻿'use strict';
 /* Simple Worship Presenter — application client.
    All user-supplied text is escaped before it reaches innerHTML. */
 const $ = (s, r = document) => r.querySelector(s);
@@ -1713,6 +1713,197 @@ async function wireUpdatePanel() {
   };
 }
 
+/* ------------------------------------------------------------- bible */
+const Bible = {
+  translation: 'WEB',
+  books: [],
+  book: null,
+  chapter: null,
+  selection: new Map(),   // "book:chapter:verse" -> verse object
+  passage: null,
+
+  async init() {
+    try {
+      const t = await api('/bible/translations');
+      const select = $('#bibleTranslation');
+      select.innerHTML = t.translations.map(x => `<option value="${esc(x.id)}">${esc(x.name)}</option>`).join('');
+      if (t.translations.length) this.translation = t.translations[0].id;
+      await this.loadBooks();
+    } catch (e) {
+      $('#bibleBookList').innerHTML = `<div class="empty-state">${esc(e.message)}<br><br>Run <code>npm run import:bible</code> on the server.</div>`;
+    }
+  },
+
+  async loadBooks() {
+    const data = await api('/bible/books?translation=' + encodeURIComponent(this.translation));
+    this.books = data.books;
+    this.renderBooks();
+  },
+
+  renderBooks() {
+    const filter = ($('#bibleBookFilter')?.value || '').toLowerCase();
+    const shown = this.books.filter(b => b.name.toLowerCase().includes(filter));
+    let html = '';
+    let testament = '';
+    for (const book of shown) {
+      if (book.testament !== testament) {
+        testament = book.testament;
+        html += `<div class="bible-testament">${testament === 'OT' ? 'Old Testament' : 'New Testament'}</div>`;
+      }
+      html += `<button class="bible-book-btn ${this.book === book.id ? 'on' : ''}" data-book="${esc(book.id)}">
+        <span>${esc(book.name)}</span><small>${book.chapter_count}</small></button>`;
+    }
+    $('#bibleBookList').innerHTML = html || '<p class="empty-state">No books match.</p>';
+    $$('#bibleBookList [data-book]').forEach(b => b.onclick = () => this.openChapter(b.dataset.book, 1));
+  },
+
+  async openChapter(bookId, number) {
+    this.book = bookId;
+    this.chapter = number;
+    this.renderBooks();
+    $('#bibleChapterTitle').textContent = 'Loading…';
+    try {
+      const data = await api(`/bible/chapter?translation=${encodeURIComponent(this.translation)}&book=${bookId}&chapter=${number}`);
+      $('#bibleChapterTitle').textContent = data.book_name + ' ' + number;
+      $('#bibleChapterMeta').textContent = `${esc(data.verse_count)} verses · ${esc(this.translation)}`;
+      $('#bibleChapterHeading').textContent = data.heading || '';
+      $('#bibleVerses').innerHTML = data.verses.map(v => `
+        <div class="bible-verse ${this.selection.has(bookId + ':' + v.verse) ? 'on' : ''}" data-v="${v.verse}" tabindex="0" role="button">
+          <span class="num">${v.verse}</span><span>${lines(v.text)}</span>
+        </div>`).join('');
+      $$('#bibleVerses .bible-verse').forEach(el => {
+        el.onclick = () => this.toggleVerse(bookId, data.book_name, number, Number(el.dataset.v), el.textContent.replace(/^\s*\d+\s*/, ''));
+        el.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.click(); } };
+      });
+    } catch (e) {
+      $('#bibleChapterTitle').textContent = data ? data.book_name : bookId;
+      $('#bibleVerses').innerHTML = `<div class="empty-state">${esc(e.message)}</div>`;
+    }
+  },
+
+  toggleVerse(bookId, bookName, chapter, verse, text) {
+    const key = bookId + ':' + chapter + ':' + verse;
+    if (this.selection.has(key)) this.selection.delete(key);
+    else this.selection.set(key, { book: bookId, book_name: bookName, chapter, verse, text: text.trim() });
+    const el = $$('#bibleVerses .bible-verse').find(x => Number(x.dataset.v) === verse);
+    if (el) el.classList.toggle('on', this.selection.has(key));
+    this.renderSelection();
+  },
+
+  clearSelection() {
+    this.selection.clear();
+    $$('#bibleVerses .bible-verse').forEach(x => x.classList.remove('on'));
+    this.renderSelection();
+  },
+
+  renderSelection() {
+    const host = $('#bibleSelection');
+    const items = [...this.selection.entries()].map(([, v]) => v).sort((a, b) => a.chapter - b.chapter || a.verse - b.verse);
+    if (!items.length) {
+      host.innerHTML = '<p class="empty-state">Click verses to select them.</p>';
+      return;
+    }
+    const ref = items.length === 1
+      ? `${items[0].book_name} ${items[0].chapter}:${items[0].verse}`
+      : items[0].book_name + ' ' + items[0].chapter + ':' + items[0].verse + '–' + items[items.length - 1].chapter + ':' + items[items.length - 1].verse;
+    host.innerHTML = `
+      <div class="sel-count">${items.length} verse${items.length === 1 ? '' : 's'} · ${esc(ref)}</div>
+      <textarea readonly>${esc(items.map(v => v.verse + ' ' + v.text).join('\n'))}</textarea>
+      <div class="modal-actions">
+        <button class="primary-button" id="bibleMakeSlides">Make slides</button>
+        <button class="secondary-button" id="bibleClear">Clear</button>
+      </div>`;
+    $('#bibleClear').onclick = () => this.clearSelection();
+    $('#bibleMakeSlides').onclick = () => this.makeSlides(items, ref);
+  },
+
+  // Build slides from a contiguous selection using the server generator.
+  async makeSlides(items, ref) {
+    const first = items[0];
+    const last = items[items.length - 1];
+    const isRange = items.length > 1 && items.every((v, i) => i === 0 || v.chapter * 1000 + v.verse === items[i - 1].chapter * 1000 + items[i - 1].verse + 1);
+    try {
+      const refString = isRange
+        ? `${first.book_name} ${first.chapter}:${first.verse}-${last.chapter}:${last.verse}`
+        : items.map(v => `${v.book_name} ${v.chapter}:${v.verse}`).join(', ');
+      const target = isRange ? refString : `${first.book_name} ${first.chapter}:${first.verse}-${last.verse}`;
+      const result = await api('/bible/slides', {
+        method: 'POST',
+        body: {
+          ref: target,
+          translation: this.translation,
+          options: { lines_per_slide: 4, show_verse_numbers: true, show_reference: true, show_translation: true }
+        }
+      });
+      this.openBuildDialog(result);
+    } catch (e) {
+      toast(e.message, 'error');
+    }
+  },
+
+  openBuildDialog(result) {
+    modal(`
+      <h2>Build slides</h2>
+      <p>${esc(result.reference)} · ${esc(result.translation_name)} · ${result.verse_count} verses in ${result.slide_count} slides</p>
+      <div class="bible-preview">${result.slides.map(s => `<div class="bible-preview-slide"><b>${esc(s.meta)}</b><span>${lines(s.text)}</span></div>`).join('')}</div>
+      <div class="modal-actions">
+        <button class="primary-button" id="bibleNewDeck">New presentation</button>
+        <button class="secondary-button" id="bibleAddDeck">Add to current</button>
+        <button class="secondary-button" id="bibleCancel">Cancel</button>
+      </div>`);
+    $('#bibleCancel').onclick = closeModal;
+    $('#bibleNewDeck').onclick = async () => {
+      const created = await api('/presentations', {
+        method: 'POST',
+        body: { title: result.reference, slides: result.slides.map(s => ({ text: s.text, meta: s.meta, reference: s.reference, translation: s.translation })) }
+      });
+      closeModal();
+      await loadPresentations();
+      openDeck(state.presentations.find(p => p.id === created.id) || created);
+      toast(result.slide_count + ' slides created');
+    };
+    $('#bibleAddDeck').onclick = async () => {
+      if (!state.deck) { toast('Open a presentation first', 'error'); return; }
+      pushHistory();
+      state.deck.slides.push(...result.slides.map(s => ({ text: s.text, meta: s.meta, reference: s.reference, translation: s.translation })));
+      renderEditor();
+      await saveDeck();
+      closeModal();
+      toast(result.slide_count + ' slides added');
+    };
+  },
+
+  async findReference(value) {
+    const error = $('#bibleRefError');
+    error.textContent = '';
+    try {
+      const result = await api('/bible/passage?translation=' + encodeURIComponent(this.translation) + '&ref=' + encodeURIComponent(value));
+      if (result.error) { error.textContent = result.error; return; }
+      this.openChapter(result.verses[0].book, result.verses[0].chapter);
+      toast(result.reference);
+    } catch (e) {
+      error.textContent = e.message;
+    }
+  },
+
+  async findWords(value) {
+    const host = $('#bibleSearchResults');
+    if (!value.trim()) { host.innerHTML = ''; return; }
+    host.innerHTML = '<p class="legal-note">Searching…</p>';
+    try {
+      const result = await api('/bible/search?translation=' + encodeURIComponent(this.translation) + '&q=' + encodeURIComponent(value) + '&limit=40');
+      if (result.error) { host.innerHTML = `<p class="legal-note">${esc(result.error)}</p>`; return; }
+      if (!result.results.length) { host.innerHTML = '<p class="empty-state">No matches.</p>'; return; }
+      host.innerHTML = result.results.map(r => `
+        <button class="bible-result" data-b="${esc(r.book)}" data-c="${r.chapter}">
+          <strong>${esc(r.reference)}</strong><span>${lines(r.text)}</span>
+        </button>`).join('');
+      $$('#bibleSearchResults .bible-result').forEach(b => b.onclick = () => this.openChapter(b.dataset.b, Number(b.dataset.c)));
+    } catch (e) {
+      host.innerHTML = `<p class="legal-note">${esc(e.message)}</p>`;
+    }
+  }
+};
 /* --------------------------------------------------------------- menus */
 const MENUS = {
   File: [
@@ -1978,3 +2169,15 @@ mountMenus();
 boot();
 // Keep the server's live state in step and follow any remote that takes over.
 LiveLink.connect();
+// Bible browser wiring.
+if ($('#bibleBookList')) {
+  Bible.init();
+  $('#bibleBookFilter').oninput = () => Bible.renderBooks();
+  $('#bibleTranslation').onchange = e => { Bible.translation = e.target.value; Bible.loadBooks(); };
+  $('#bibleRefGo').onclick = () => Bible.findReference($('#bibleRefInput').value);
+  $('#bibleRefInput').onkeydown = e => { if (e.key === 'Enter') Bible.findReference(e.target.value); };
+  $('#bibleSearchGo').onclick = () => Bible.findWords($('#bibleSearchInput').value);
+  $('#bibleSearchInput').onkeydown = e => { if (e.key === 'Enter') Bible.findWords(e.target.value); };
+  $('#biblePrevChapter').onclick = () => { if (Bible.book && Bible.chapter > 1) Bible.openChapter(Bible.book, Bible.chapter - 1); };
+  $('#bibleNextChapter').onclick = () => { if (Bible.book) Bible.openChapter(Bible.book, Bible.chapter + 1); };
+}
