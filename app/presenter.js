@@ -87,6 +87,33 @@ function receive(msg) {
   titleEl.style.letterSpacing = /Bebas|Oswald/.test(font) ? '0.02em' : '-0.025em';
   stage.style.justifyContent = { top: 'flex-start', center: 'center', bottom: 'flex-end' }[style.valign || 'center'] || 'center';
 
+  // Animated backgrounds are real media, played silently and looped.
+  const video = document.getElementById('stageVideo');
+  const overlay = document.getElementById('stageOverlay');
+  if (video && overlay) {
+    const media = m.video;
+    if (media && media.url) {
+      if (video.dataset.src !== media.url) {
+        video.dataset.src = media.url;
+        video.src = media.url;
+      }
+      video.hidden = false;
+      video.loop = media.loop !== false;
+      video.muted = true;
+      video.style.objectFit = media.fit || 'cover';
+      const played = video.play?.();
+      if (played && played.catch) played.catch(() => { /* autoplay blocked; first frame shows */ });
+      overlay.hidden = false;
+      overlay.style.background = 'rgba(0,0,0,' + Number(media.overlay ?? 0.35) + ')';
+    } else {
+      video.hidden = true;
+      video.removeAttribute('src');
+      video.dataset.src = '';
+      video.pause?.();
+      overlay.hidden = true;
+    }
+  }
+
   // Replacing the nodes on every change is what restarts the animation.
   titleEl.innerHTML = text ? animatedText(text, style) : '<em>Waiting for the operator…</em>';
   titleEl.classList.toggle('song', /verse|chorus|bridge/i.test(text));

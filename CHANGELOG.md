@@ -4,6 +4,16 @@ All notable changes to Simple Worship Presenter are recorded here.
 
 ## Unreleased
 
+### Added
+- **Animated backgrounds (Phase 17).** Slides can now use a video or animated image from the
+  media library as a real moving background. Backgrounds play silently and loop, can be applied to
+  a single slide or to every slide in a presentation, and carry an adjustable dark overlay so text
+  stays readable. The same library file is reused across presentations rather than duplicated, and
+  removing a background never deletes the source media.
+- The audience display renders animated backgrounds alongside the text, keeping presenter and
+  projector in step. Reduced-motion settings hide moving backgrounds, and if a browser blocks
+  autoplay the first frame remains visible rather than leaving a blank slide.
+
 ## 0.3.5 — 2026-10-12
 
 ### Added

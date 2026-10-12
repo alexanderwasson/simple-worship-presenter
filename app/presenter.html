@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@400;600;700&family=Lora:wght@400;500;600;700&family=Merriweather:wght@300;400;700&family=Libre+Baskerville:wght@400;700&family=Roboto+Slab:wght@300;400;700&family=Oswald:wght@300;400;600&family=Bebas+Neue&family=Montserrat:wght@300;400;600;800&family=Poppins:wght@300;400;600;800&family=Inter:wght@300;400;600;800&family=Source+Sans+3:wght@300;400;600;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=26">
+<link rel="stylesheet" href="styles.css?v=50">
 <style>
   html,body{margin:0;height:100%;overflow:hidden;background:#111}
   .stage{height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;background:linear-gradient(135deg,#b96b4d,#d59063);color:#fff;transition:background .25s;padding:6vh 0}
@@ -31,6 +31,8 @@
 <body>
   <main class="stage" id="stage">
     <div class="stage-inner">
+      <video class="stage-video" id="stageVideo" muted loop playsinline preload="auto" hidden></video>
+      <div class="stage-overlay" id="stageOverlay" hidden></div>
       <img class="slide-image" id="slideImage" alt="" hidden>
       <p class="stage-kicker" id="kicker">SIMPLE WORSHIP PRESENTER</p>
       <h1 class="stage-text" id="title">Waiting for the operator…</h1>
@@ -39,6 +41,6 @@
     <div class="status-dot" id="status"><i></i><span id="statusText">Connected</span></div>
     <div class="stage-hint">SPACE / → next · ← previous · F fullscreen</div>
   </main>
-  <script src="presenter.js?v=7"></script>
+  <script src="presenter.js?v=50"></script>
 </body>
 </html>

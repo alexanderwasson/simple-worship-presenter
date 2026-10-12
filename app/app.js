@@ -639,6 +639,42 @@ function slideBg(slide) {
   return slide && typeof slide === 'object' ? (slide.background || '') : '';
 }
 
+// Animated backgrounds are real media, stored as a reference to library media so
+// the same file can be reused across presentations without being duplicated.
+function slideVideo(slide) {
+  return slide && typeof slide === 'object' && slide.video && typeof slide.video === 'object' ? slide.video : null;
+}
+
+function renderBackground(slide) {
+  const canvas = $('#slideCanvas');
+  const video = $('#canvasVideo');
+  const overlay = $('#canvasOverlay');
+  if (!video || !overlay) return;
+  const media = slideVideo(slide);
+
+  if (!media || !media.url) {
+    video.hidden = true;
+    video.removeAttribute('src');
+    video.pause?.();
+    overlay.hidden = true;
+    return;
+  }
+
+  video.src = media.url;
+  video.hidden = false;
+  video.loop = media.loop !== false;
+  video.muted = true;              // never autoplay sound from a background
+  video.autoplay = true;
+  video.playsInline = true;
+  video.style.objectFit = media.fit || 'cover';
+  const play = video.play?.();
+  if (play && play.catch) play.catch(() => { /* autoplay blocked: poster frame stays */ });
+
+  overlay.hidden = false;
+  overlay.style.background = `rgba(0,0,0,${Number(media.overlay ?? 0.35)})`;
+  canvas.classList.toggle('text-shadowed', Number(media.overlay ?? 0.35) > 0.15);
+}
+
 // Font choices offered in the slide editor. Each maps to a Google Fonts family
 // or a reliable system family so the audience display renders identically.
 const FONTS = [
@@ -829,6 +865,7 @@ function renderEditor() {
   const bg = slideBg(slide) || 'linear-gradient(135deg,#b96b4d,#d59063)';
   const style = slideStyle(slide);
   $('#slideCanvas').style.background = bg;
+  renderBackground(slide);
   $('#canvasKicker').textContent = (state.deck.title + ' · ' + new Date().toLocaleDateString()).toUpperCase();
   const canvasText = slideText(slide);
   $('#canvasTitle').innerHTML = canvasText ? animatedText(canvasText, style) : '<em>New slide</em>';
@@ -917,6 +954,10 @@ function renderInspector() {
       <button class="color pink" data-theme="pink"></button>
       <button class="add-color" id="pickBackground" title="Upload background image">+</button>
     </div>
+    <div class="bg-choice">
+      <button id="pickAnimated" title="Choose a video or animated image">🎞 Animated background</button>
+      <button id="clearAnimated" title="Remove the animated background">Remove</button>
+    </div>
     <div class="inspector-divider"></div>
     <button class="delete-slide" id="deleteSlide">? Delete slide</button>
     ${isImage ? '<p class="legal-note">This slide has an image attached.</p>' : ''}`;
@@ -998,6 +1039,17 @@ function renderInspector() {
   });
 
   $('#pickBackground').onclick = () => $('#backgroundInput').click();
+  const pickAnimatedBtn = document.getElementById('pickAnimated');
+  const clearAnimatedBtn = document.getElementById('clearAnimated');
+  if (pickAnimatedBtn) pickAnimatedBtn.onclick = () => openBackgroundPicker();
+  if (clearAnimatedBtn) clearAnimatedBtn.onclick = () => {
+    const obj = slideObject(state.deck.slides[state.active]);
+    delete obj.video;
+    state.deck.slides[state.active] = obj;
+    renderEditor();
+    saveDeck();
+    toast('Animated background removed');
+  };
   $('#deleteSlide').onclick = () => deleteSlide();
 
   // Reflect the starting style in the preview swatch.
@@ -1392,6 +1444,7 @@ function payload() {
     index: state.active,
     title: slideText(slide),
     image: slideImage(slide),
+    video: slideVideo(slide),
     count: state.deck ? state.deck.slides.length : 0,
     background: slideBg(slide),
     style: slideStyle(slide),
@@ -2185,4 +2238,92 @@ if ($('#bibleBookList')) {
   $('#bibleSearchInput').onkeydown = e => { if (e.key === 'Enter') Bible.findWords(e.target.value); };
   $('#biblePrevChapter').onclick = () => { if (Bible.book && Bible.chapter > 1) Bible.openChapter(Bible.book, Bible.chapter - 1); };
   $('#bibleNextChapter').onclick = () => { if (Bible.book) Bible.openChapter(Bible.book, Bible.chapter + 1); };
+}
+/* --------------------------------------------- animated background picker */
+async function openBackgroundPicker() {
+  let items = [];
+  try {
+    const data = await api('/media');
+    items = data.media.filter(m => m.kind === 'video' || m.kind === 'image');
+  } catch (e) {
+    toast(e.message, 'error');
+    return;
+  }
+  const current = slideVideo(state.deck.slides[state.active]);
+
+  modal(`
+    <h2>Animated background</h2>
+    <p>Choose a video or animated image from your media library. The file stays in the library, so the same background can be reused across presentations.</p>
+    ${items.length ? `<div class="bg-picker-grid">${items.map(m => `
+      <button class="bg-picker-item" data-media="${esc(m.id)}" data-kind="${esc(m.kind)}">
+        <span class="bp-thumb" style="background-image:url('/api/media/${esc(m.id)}/file')">${m.kind === 'video' ? '<em>▶ video</em>' : ''}</span>
+        <small>${esc(m.original_name)}</small>
+      </button>`).join('')}</div>` : '<p class="empty-state">No images or videos uploaded yet. Add some in Media first.</p>'}
+    <label class="modal-label">Dark overlay for text contrast</label>
+    <div class="overlay-row">
+      <input type="range" id="bgOverlay" min="0" max="0.85" step="0.05" value="${current ? (current.overlay ?? 0.35) : 0.35}">
+      <output id="bgOverlayOut">${Math.round((current ? (current.overlay ?? 0.35) : 0.35) * 100)}%</output>
+    </div>
+    <div class="bg-choice" style="margin-top:14px">
+      <button id="bgApplySlide" disabled>Apply to this slide</button>
+      <button id="bgApplyAll" disabled>Apply to every slide</button>
+    </div>
+    <div class="modal-actions"><button class="secondary-button" id="bgCancel">Cancel</button></div>
+    <p class="legal-note">Background videos play silently and loop. If a browser blocks autoplay the first frame stays visible. Reduced-motion settings hide moving backgrounds in the editor.</p>`);
+
+  $('#bgCancel').onclick = closeModal;
+  const overlay = $('#bgOverlay');
+  overlay.oninput = () => { $('#bgOverlayOut').textContent = Math.round(Number(overlay.value) * 100) + '%'; };
+
+  let chosen = null;
+  $$('[data-media]').forEach(btn => btn.onclick = () => {
+    $$('[data-media]').forEach(x => x.classList.remove('on'));
+    btn.classList.add('on');
+    chosen = { id: btn.dataset.media, kind: btn.dataset.kind };
+    $('#bgApplySlide').disabled = false;
+    $('#bgApplyAll').disabled = false;
+  });
+
+  const build = () => {
+    const media = items.find(m => m.id === chosen.id);
+    return {
+      id: media.id,
+      kind: media.kind,
+      url: '/api/media/' + media.id + '/file',
+      overlay: Number(overlay.value),
+      fit: 'cover',
+      loop: true,
+      muted: true,
+      name: media.original_name
+    };
+  };
+
+  $('#bgApplySlide').onclick = () => {
+    const obj = slideObject(state.deck.slides[state.active]);
+    const media = items.find(m => m.id === chosen.id);
+    if (media.kind === 'video') obj.video = build();
+    else obj.background = `url("/api/media/${media.id}/file") center/cover no-repeat`;
+    state.deck.slides[state.active] = obj;
+    renderEditor();
+    saveDeck();
+    closeModal();
+    toast(media.kind === 'video' ? 'Animated background applied to this slide' : 'Background image applied to this slide');
+  };
+
+  $('#bgApplyAll').onclick = () => {
+    const media = items.find(m => m.id === chosen.id);
+    const video = media.kind === 'video' ? build() : null;
+    const css = `url("/api/media/${media.id}/file") center/cover no-repeat`;
+    pushHistory();
+    state.deck.slides = state.deck.slides.map(s => {
+      const obj = slideObject(s);
+      if (video) obj.video = { ...video };
+      else obj.background = css;
+      return obj;
+    });
+    renderEditor();
+    saveDeck();
+    closeModal();
+    toast(media.kind === 'video' ? 'Animated background applied to every slide' : 'Background applied to every slide');
+  };
 }
