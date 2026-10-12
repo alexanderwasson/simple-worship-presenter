@@ -1,4 +1,4 @@
-# Deploying Simple Worship Presenter
+﻿# Deploying Simple Worship Presenter
 
 This covers the production layout you asked for:
 
@@ -17,7 +17,7 @@ The two are independent. The website can be deployed before, after, or alongside
 git init
 git add .
 git status          # review before committing
-git commit -m "Simple Worship Presenter 0.4.0"
+git commit -m "Simple Worship Presenter 0.3.5"
 git branch -M main
 git remote add origin https://github.com/<your-account>/simple-worship-presenter.git
 git push -u origin main

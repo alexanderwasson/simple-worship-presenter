@@ -2,7 +2,7 @@
 
 All notable changes to Simple Worship Presenter are recorded here.
 
-## 0.4.0 — 2026-10-12
+## 0.3.5 — 2026-10-12
 
 ### Added
 - **The World English Bible is built in.** All 66 books of the Protestant canon — 1,189 chapters,
