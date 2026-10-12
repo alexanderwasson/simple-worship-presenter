@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -290,6 +290,34 @@
     </section>
 
   </div>
-  <script src="remote.js?v=2"></script>
+  <script src="remote.js?v=3"></script>
 </body>
 </html>
+
+  /* ---- service plan rundown ---- */
+  .rundown-item { display: grid; gap: 6px; margin-bottom: 10px; }
+  .rundown-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 11px 12px 5px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .3px;
+    color: #98a0ab;
+    text-transform: uppercase;
+  }
+  .rundown-title b {
+    font-family: ui-monospace, monospace;
+    font-size: 9px;
+    font-weight: 500;
+    color: #6f7783;
+    background: #23272e;
+    border: 1px solid #31363e;
+    border-radius: 5px;
+    padding: 2px 6px;
+  }
+  .rundown-item.current .rundown-title { color: #ffb894; }
+  .rundown-item.current .rundown-title b { color: #ffb894; border-color: #7c4b2c; background: #2a2219; }
+  .rundown-item .slide-item { border-left: 2px solid transparent; }
+  .rundown-item.current .slide-item { border-left-color: #7c4b2c; }

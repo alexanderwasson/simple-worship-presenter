@@ -69,7 +69,9 @@ router.post('/state', auth.requireAuth, (req, res) => {
     footer: req.body.footer,
     presentation_id: req.body.presentation_id,
     index: req.body.index,
-    blank: req.body.blank
+    blank: req.body.blank,
+    plan: req.body.plan,
+    plan_index: req.body.plan_index
   });
   req.app.get('liveHub')?.broadcastState(req.user.id);
   res.json({ state: live.publicState(session) });

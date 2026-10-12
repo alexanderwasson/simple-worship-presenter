@@ -1,6 +1,6 @@
-{
+﻿{
   "name": "simple-worship-presenter",
-  "version": "0.3.4",
+  "version": "0.4.0",
   "private": true,
   "description": "Free, self-hostable worship presentation software for the web",
   "license": "MIT",
@@ -9,15 +9,15 @@
     "start": "node server.js",
     "users": "node scripts/promote-admin.js --list",
     "promote-admin": "node scripts/promote-admin.js",
-    "check": "node --check server.js && node --check ecosystem.config.js && node --check scripts/promote-admin.js && node --check scripts/self-update.js && node --check app/app.js && node --check app/presenter.js && node --check app/remote.js && node --check website/site.js && node --check src/config.js && node --check src/log.js && node --check src/db.js && node --check src/auth.js && node --check src/version.js && node --check src/rateLimit.js && node --check src/live.js && node --check src/remote-ws.js && node --check src/routes/content.js && node --check src/routes/remote.js",
+    "self-update": "node scripts/self-update.js",
+    "import:bible": "node scripts/import-bible.js",
+    "check": "node --check server.js && node --check ecosystem.config.js && node --check scripts/promote-admin.js && node --check scripts/self-update.js && node --check scripts/import-bible.js && node --check app/app.js && node --check app/presenter.js && node --check app/remote.js && node --check website/site.js && node --check src/config.js && node --check src/log.js && node --check src/db.js && node --check src/auth.js && node --check src/version.js && node --check src/rateLimit.js && node --check src/live.js && node --check src/remote-ws.js && node --check src/bible.js && node --check src/routes/content.js && node --check src/routes/remote.js && node --check src/routes/bible.js",
     "smoke": "node scripts/smoke.js",
-    "test": "npm run check && node --test test/auth.test.js test/quota.test.js test/content.test.js test/security.test.js test/data.test.js test/admin.test.js test/maintenance.test.js test/storage.test.js test/version.test.js test/self-update.test.js test/remote.test.js",
+    "test": "npm run check && node --test test/auth.test.js test/quota.test.js test/content.test.js test/security.test.js test/data.test.js test/admin.test.js test/maintenance.test.js test/storage.test.js test/version.test.js test/self-update.test.js test/remote.test.js test/plan-nav.test.js test/bible.test.js",
     "test:all": "npm run check && node scripts/smoke.js && npm run test:unit",
-    "test:unit": "node --test test/auth.test.js test/quota.test.js test/content.test.js test/security.test.js test/data.test.js test/admin.test.js test/maintenance.test.js test/storage.test.js test/version.test.js test/self-update.test.js test/remote.test.js"
+    "test:unit": "node --test test/auth.test.js test/quota.test.js test/content.test.js test/security.test.js test/data.test.js test/admin.test.js test/maintenance.test.js test/storage.test.js test/version.test.js test/self-update.test.js test/remote.test.js test/plan-nav.test.js test/bible.test.js"
   },
-  "engines": {
-    "node": ">=18"
-  },
+  "engines": { "node": ">=18" },
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.7",

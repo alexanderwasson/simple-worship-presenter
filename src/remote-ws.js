@@ -88,7 +88,9 @@ function attach(server, config) {
       footer: message.footer,
       presentation_id: message.presentation_id,
       index: message.index,
-      blank: message.blank
+      blank: message.blank,
+      plan: message.plan,
+      plan_index: message.plan_index
     });
     broadcastState(client.userId);
     send(socket, { type: 'ack', kind: 'publish' });

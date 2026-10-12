@@ -52,6 +52,32 @@
   <h2>Retention and deletion</h2>
   <p>You can delete your account from Settings. That permanently removes your presentations, songs, service plans, media and files, and releases the storage they occupied. Backups may retain data for a limited period before they rotate.</p>
 
+  <h2>Bible translation data</h2>
+  <p>The application includes the <strong>World English Bible (WEB)</strong>, which is in the
+  public domain. The name <em>World English Bible</em> is a trademark of eBible.org. The text is
+  installed on the server and shared by every account — it is not copied into your account and it
+  does not count against your storage allowance. Looking up a passage or searching the text makes
+  no request to any external Bible service. When you generate slides from a passage, the resulting
+  slides become your content. Attribution and the source URL are recorded with the translation.</p>
+
+  <h2>The mobile remote</h2>
+  <p>The remote is a web page, not an installed app. Pairing issues a short-lived, single-use code
+  that is exchanged for a device token; the code itself contains no account credentials. The server
+  keeps a record of paired devices so you can see and revoke them. Presentation state — the current
+  slide, the running order and whether the output is blanked — is held on the server for the length
+  of the session so the phone, the control window and the projector agree. Disconnecting a device
+  or ending the session stops that access immediately.</p>
+
+  <h2>Hosted versus self-hosted</h2>
+  <p><strong>Hosted service.</strong> Alexander Wasson operates the infrastructure behind
+  app.simpleworshippresenter.com and can, as the operator, access data stored on it. Do not assume
+  otherwise.</p>
+  <p><strong>Self-hosted.</strong> If you install the software yourself, the administrator of that
+  instance controls the server, the data and the retention. This privacy policy describes the
+  hosted service; a self-hosted instance is operated by whoever installed it. The software does not
+  send your presentations, media or account details to the developer's server. The only outbound
+  request in normal operation is the optional update check, which the administrator can disable.</p>
+
   <h2>Security</h2>
   <p>Passwords are hashed with bcrypt and never stored in plain text. Sessions use signed, HttpOnly cookies. Every protected request is authorised server-side and scoped to your account. Rate limits are applied to sign-in endpoints. We recommend HTTPS for every deployment.</p>
 

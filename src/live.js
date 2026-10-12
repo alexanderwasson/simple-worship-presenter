@@ -48,6 +48,15 @@ function publicState(session) {
     // Text labels only: enough for a remote to show the rundown and previews
     // without shipping media to a phone.
     labels: session.slides.map(slideTextOf).map(s => s.slice(0, 200)),
+    plan: session.planItems.length ? {
+      id: session.planId,
+      title: session.planTitle,
+      date: session.planDate,
+      item_index: session.planIndex,
+      item_count: session.planItems.length
+    } : null,
+    // The whole service, so a phone can scroll from one song to the next.
+    rundown: planRundown(session),
     blank: session.blank,
     version: session.version,
     updated_at: session.updatedAt
@@ -57,6 +66,22 @@ function publicState(session) {
 function slideTextOf(slide) {
   if (typeof slide === 'string') return slide;
   return (slide && (slide.text || slide.name)) || '';
+}
+
+function normaliseSlides(list) {
+  return (Array.isArray(list) ? list : []).slice(0, 500).map(s => {
+    if (typeof s === 'string') return String(s).slice(0, 4000);
+    if (s && typeof s === 'object') {
+      return {
+        text: String(s.text || '').slice(0, 4000),
+        image: String(s.image || '').slice(0, 2000000),
+        background: String(s.background || '').slice(0, 2000000),
+        name: String(s.name || '').slice(0, 200),
+        style: s.style && typeof s.style === 'object' ? s.style : undefined
+      };
+    }
+    return '';
+  });
 }
 
 // The slide payload matches what the editor already sends to the audience
@@ -91,11 +116,43 @@ function getState(userId) {
       blank: false,
       version: 0,
       updatedAt: now(),
-      revision: 0
+      revision: 0,
+      // When a service plan is live, these describe the running order so that
+      // advancing past the last slide of a song moves into the next one.
+      planId: null,
+      planTitle: '',
+      planDate: '',
+      planItems: [],
+      planIndex: 0
     };
     sessions.set(userId, session);
   }
   return session;
+}
+
+// The full rundown across every item in the live service plan, so a phone can
+// scroll the whole service and jump into any song.
+function loadPlanItem(session, itemIndex) {
+  const item = session.planItems[itemIndex];
+  if (!item) return false;
+  session.planIndex = itemIndex;
+  session.slides = item.slides;
+  session.presentationId = item.id;
+  session.title = item.title;
+  session.index = 0;
+  return true;
+}
+
+// The full rundown across every item in the live service plan, so a phone can
+// scroll the whole service and jump into any song.
+function planRundown(session) {
+  if (!session.planItems.length) return [];
+  return session.planItems.map((item, i) => ({
+    item_index: i,
+    title: item.title,
+    labels: item.slides.map(slideTextOf).map(s => s.slice(0, 200)),
+    current: i === session.planIndex
+  }));
 }
 
 // Called by the desktop workspace whenever it saves or selects a slide.
@@ -104,24 +161,37 @@ function publish(userId, input) {
   if (!input || typeof input !== 'object') return session;
 
   if (Array.isArray(input.slides)) {
-    session.slides = input.slides.slice(0, 500).map(s => {
-      if (typeof s === 'string') return String(s).slice(0, 4000);
-      if (s && typeof s === 'object') {
-        return {
-          text: String(s.text || '').slice(0, 4000),
-          image: String(s.image || '').slice(0, 2000000),
-          background: String(s.background || '').slice(0, 2000000),
-          name: String(s.name || '').slice(0, 200),
-          style: s.style && typeof s.style === 'object' ? s.style : undefined
-        };
-      }
-      return '';
-    });
+    session.slides = normaliseSlides(input.slides);
     session.index = Math.max(0, Math.min(session.index, Math.max(0, session.slides.length - 1)));
   }
   if (typeof input.title === 'string') session.title = input.title.slice(0, 200);
   if (typeof input.footer === 'string') session.footer = input.footer.slice(0, 200);
   if (typeof input.presentation_id === 'string') session.presentationId = input.presentation_id.slice(0, 100);
+
+  // A live service plan lets a remote walk from one song into the next. The
+  // workspace sends `plan: null` when no plan is active, which must clear it.
+  if (input.plan === null) {
+    session.planId = null;
+    session.planTitle = '';
+    session.planDate = '';
+    session.planItems = [];
+    session.planIndex = 0;
+  } else if (input.plan && typeof input.plan === 'object') {
+    session.planId = String(input.plan.id || '').slice(0, 100) || null;
+    session.planTitle = String(input.plan.title || '').slice(0, 200);
+    session.planDate = String(input.plan.date || '').slice(0, 20);
+    if (Array.isArray(input.plan.items)) {
+      session.planItems = input.plan.items.slice(0, 100).map(item => ({
+        id: String((item && item.id) || '').slice(0, 100),
+        title: String((item && item.title) || '').slice(0, 200),
+        slides: normaliseSlides(item && item.slides)
+      }));
+    }
+  }
+  if (typeof input.plan_index === 'number' && Number.isFinite(input.plan_index)) {
+    session.planIndex = Math.max(0, Math.min(Math.floor(input.plan_index), Math.max(0, session.planItems.length - 1)));
+  }
+
   if (typeof input.index === 'number' && Number.isFinite(input.index)) {
     session.index = Math.max(0, Math.min(Math.floor(input.index), Math.max(0, session.slides.length - 1)));
   }
@@ -149,21 +219,46 @@ function command(userId, cmd, sourceLabel) {
   const before = { index: session.index, blank: session.blank };
   switch (action) {
     case 'next':
-      session.index = Math.min(session.index + 1, session.slides.length - 1);
+      if (session.index < session.slides.length - 1) {
+        session.index += 1;
+      } else if (session.planItems.length && session.planIndex < session.planItems.length - 1) {
+        // End of this song: move into the next one in the service plan.
+        loadPlanItem(session, session.planIndex + 1);
+      }
       break;
     case 'previous':
-      session.index = Math.max(session.index - 1, 0);
+      if (session.index > 0) {
+        session.index -= 1;
+      } else if (session.planItems.length && session.planIndex > 0) {
+        // Start of this song: step back to the last slide of the previous one.
+        loadPlanItem(session, session.planIndex - 1);
+        session.index = Math.max(0, session.slides.length - 1);
+      }
       break;
     case 'goto': {
-      // A missing or non-numeric index must never silently mean "slide 0".
-      if (typeof cmd.index !== 'number' || !Number.isInteger(cmd.index)) {
+      // A jump may name a song within a live plan, a slide, or both.
+      if (cmd.index === undefined && cmd.item_index === undefined) {
         return { ok: false, error: 'Slide index must be a whole number' };
       }
-      const target = cmd.index;
-      if (target < 0 || target >= session.slides.length) {
-        return { ok: false, error: 'Slide index is out of range' };
+      if (cmd.item_index !== undefined) {
+        if (typeof cmd.item_index !== 'number' || !Number.isInteger(cmd.item_index)) {
+          return { ok: false, error: 'Item index must be a whole number' };
+        }
+        if (cmd.item_index < 0 || cmd.item_index >= session.planItems.length) {
+          return { ok: false, error: 'Item index is out of range' };
+        }
+        loadPlanItem(session, cmd.item_index);
       }
-      session.index = target;
+      if (cmd.index !== undefined) {
+        // A missing or non-numeric index must never silently mean "slide 0".
+        if (typeof cmd.index !== 'number' || !Number.isInteger(cmd.index)) {
+          return { ok: false, error: 'Slide index must be a whole number' };
+        }
+        if (cmd.index < 0 || cmd.index >= session.slides.length) {
+          return { ok: false, error: 'Slide index is out of range' };
+        }
+        session.index = cmd.index;
+      }
       break;
     }
     case 'blank':

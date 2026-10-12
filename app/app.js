@@ -1174,7 +1174,15 @@ const LiveLink = {
       footer: state.settings.ccli_license ? 'CCLI ' + state.settings.ccli_license : (config.instanceName || 'Simple Worship Presenter'),
       presentation_id: state.deck ? state.deck.id : null,
       index: state.active,
-      blank: state.blanked
+      blank: state.blanked,
+      // When a service plan is live the phone can walk the whole running order.
+      plan: state.plan ? {
+        id: state.plan.id,
+        title: state.plan.title,
+        date: state.plan.date,
+        items: state.plan.items.map(p => ({ id: p.id, title: p.title, slides: p.slides }))
+      } : null,
+      plan_index: state.plan ? state.plan.index : 0
     };
   },
 

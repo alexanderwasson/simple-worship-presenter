@@ -12,6 +12,7 @@ const auth = require('./src/auth');
 const { limiter, authLimiter, writeLimiter } = require('./src/rateLimit');
 const contentRoutes = require('./src/routes/content');
 const remoteRoutes = require('./src/routes/remote');
+const bibleRoutes = require('./src/routes/bible');
 const remoteWs = require('./src/remote-ws');
 
 const app = express();
@@ -121,6 +122,7 @@ app.get('/api/auth/me', auth.requireAuth, (req, res) => {
 
 // ---- application content ------------------------------------------------
 app.use('/api/remote', limiter({ label: 'api', max: config.rateLimitMaxWrite, message: 'Too many requests.' }), remoteRoutes);
+app.use('/api/bible', limiter({ label: 'api', max: config.rateLimitMaxWrite, message: 'Too many requests.' }), bibleRoutes);
 app.use('/api', limiter({ label: 'api', max: config.rateLimitMaxWrite, message: 'Too many requests.' }), contentRoutes);
 
 app.use('/api', (req, res) => res.status(404).json({ error: 'Not found' }));

@@ -2,6 +2,45 @@
 
 All notable changes to Simple Worship Presenter are recorded here.
 
+## 0.4.0 — 2026-10-12
+
+### Added
+- **The World English Bible is built in.** All 66 books of the Protestant canon — 1,189 chapters,
+  31,103 verses — imported from the official eBible.org USFM source and stored as shared instance
+  data. The text is not copied into anyone's account and never counts against a storage quota.
+  Looking up a passage or searching makes no external request.
+- **Reproducible importer.** `npm run import:bible` downloads the official archive, normalises USFM
+  book codes, strips Strong's-number and styling markup while leaving wording untouched, and writes
+  one file per book. Running it again replaces the translation cleanly instead of duplicating it.
+  `--from <file>` imports an archive you already have.
+- **Reference parsing** for `John 3:16`, `Jn 3:16`, `1 Jn 1:9`, `Psalm 23`, `1 Cor 13:4-7` and
+  `Gen 1:1-2:3`, with errors that explain what to correct rather than guessing.
+- **Chapter lookup and word search** across the translation, each result carrying its reference and
+  translation.
+- **Slide generation for passages** with configurable line count, verse numbers, reference and
+  translation labels. A verse is never split across slides and text is never trimmed to fit.
+
+### Verification
+Text integrity was checked against known WEB quotations. Genesis 1:1, Psalm 23:1, John 3:16 and
+Romans 8:28 match the source exactly, and a scan of all 31,103 verses found **zero** with leftover
+USFM markup. Psalm superscriptions are stored as chapter headings so verse numbering stays faithful.
+
+178 automated tests pass, including 22 for the Bible: all 66 books in canonical order, expected
+chapter and verse counts, representative verses, reference parsing and rejection, cross-chapter
+ranges, search accuracy, verse order, slide generation that loses nothing, and operation with no
+external Bible service.
+
+### Documented
+Privacy policy and terms now cover Bible translation licensing and attribution, the mobile remote
+and its session data, and the distinction between the hosted service and self-hosted instances.
+
+### Not included in this release
+Stated plainly because the work is not done: the Bible browser interface, adding passages to
+presentations and service plans from the UI, Bible export/import in presentation packages,
+animated video backgrounds, the media gallery in the editor, the design-system pass, slide
+transitions, and the youth games library and game engine. The data layer and API for scripture are
+in place and tested; the interface work remains.
+
 ## 0.3.4 — 2026-10-11
 
 ### Added
