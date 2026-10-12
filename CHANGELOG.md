@@ -49,7 +49,12 @@ All notable changes to Simple Worship Presenter are recorded here.
 
 ## Unreleased
 
-### Changed
+### Added
+- **A cooldown between pairing codes.** Generating a code is throttled per account (30 seconds by
+  configurable via `PAIRING_COOLDOWN_SECONDS`), so an operator cannot flood the pairing screen by
+  clicking repeatedly — deliberate or accidental. A second request inside the window returns `429`
+  with a `Retry-After` header and the remaining wait, and an already-issued code keeps working. The
+  dashboard disables the button and counts the wait down.
 - The dashboard now states whether an update setting came from `.env` or is the built-in default,
   so an override left over from troubleshooting is immediately visible.
 

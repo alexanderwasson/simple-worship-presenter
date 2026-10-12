@@ -82,6 +82,15 @@ router.post('/pairing', auth.requireAuth, limiter({ label: 'pairing', max: confi
     : ALL_ACTIONS;
   const created = live.createPairing(req.user.id, session.id, { scope });
 
+  if (!created.ok) {
+    res.setHeader('Retry-After', String(created.retry_after_seconds || 1));
+    return res.status(429).json({
+      error: created.error,
+      retry_after_seconds: created.retry_after_seconds || 1,
+      cooldown_seconds: config.pairingCooldownSeconds
+    });
+  }
+
   let qr = '';
   const link = live.pairingUrl(created.code);
   try {
@@ -97,6 +106,7 @@ router.post('/pairing', auth.requireAuth, limiter({ label: 'pairing', max: confi
     qr,
     expires_at: new Date(created.expiresAt).toISOString(),
     expires_in_seconds: created.expires_in_seconds,
+    cooldown_seconds: created.cooldown_seconds,
     scope
   });
 });

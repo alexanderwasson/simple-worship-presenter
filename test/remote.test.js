@@ -139,6 +139,44 @@ test('mobile remote pairing', async t => {
     }
     assert.equal(last.status, 429, 'repeated pairing attempts must be throttled');
   });
+
+  await t.test('a new code cannot be requested immediately', async () => {
+    const cooled = await startServer({ PAIRING_COOLDOWN_SECONDS: '2' });
+    t.after(() => cooled.stop());
+    const user = await signIn(cooled);
+
+    const first = await cooled.api('/remote/pairing', { method: 'POST', body: {} }, user.cookie);
+    assert.equal(first.status, 201, 'the first code is issued straight away');
+    assert.equal(first.body.cooldown_seconds, 2);
+
+    const second = await cooled.api('/remote/pairing', { method: 'POST', body: {} }, user.cookie);
+    assert.equal(second.status, 429, 'an immediate second request must be refused');
+    assert.match(second.body.error, /Wait \d+ second/i);
+    assert.ok(second.body.retry_after_seconds > 0 && second.body.retry_after_seconds <= 2);
+    assert.match(second.headers['retry-after'] || '', /^\d+$/, 'Retry-After must be set');
+
+    // The original code is still the live one and still works.
+    const paired = await cooled.api('/remote/pair', { method: 'POST', body: { code: first.body.code } });
+    assert.equal(paired.status, 200, 'the already-issued code must remain usable');
+  });
+
+  await t.test('the cooldown is per account, not global', async () => {
+    const cooled = await startServer({ PAIRING_COOLDOWN_SECONDS: '2' });
+    t.after(() => cooled.stop());
+    const alex = await signIn(cooled, { email: 'cool-alex@example.com' });
+    const sam = await signIn(cooled, { email: 'cool-sam@example.com' });
+
+    const one = await cooled.api('/remote/pairing', { method: 'POST', body: {} }, alex.cookie);
+    assert.equal(one.status, 201);
+
+    // Sam is unaffected by Alex's cooldown.
+    const other = await cooled.api('/remote/pairing', { method: 'POST', body: {} }, sam.cookie);
+    assert.equal(other.status, 201);
+
+    // Alex is still throttled.
+    const again = await cooled.api('/remote/pairing', { method: 'POST', body: {} }, alex.cookie);
+    assert.equal(again.status, 429);
+  });
 });
 
 test('mobile remote authorisation', async t => {

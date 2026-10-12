@@ -69,6 +69,10 @@ const config = {
   rateLimitMaxWrite: num('RATE_LIMIT_MAX_WRITE', 240, { min: 1, integer: true }),
   rateLimitMaxPairing: num('RATE_LIMIT_MAX_PAIRING', 12, { min: 1, integer: true }),
   rateLimitMaxRemoteCommand: num('RATE_LIMIT_MAX_REMOTE_COMMAND', 300, { min: 1, integer: true }),
+  // Minimum gap between pairing codes for one account. The rate limiter stops
+  // brute force from outside; this stops a signed-in operator from flooding
+  // their own screen with codes, intentional or otherwise.
+  pairingCooldownSeconds: num('PAIRING_COOLDOWN_SECONDS', 30, { min: 0, integer: true }),
 
   // Self-update is enabled by default against the official upstream release feed.
   // Both are read on demand: nothing is contacted and nothing runs until an

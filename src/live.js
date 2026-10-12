@@ -24,6 +24,7 @@ const MAX_REMOTES_PER_USER = 20;
 const sessions = new Map();   // userId -> live state
 const pairing = new Map();    // code   -> pairing record
 const remotes = new Map();    // remoteId -> paired remote record
+const pairingRequests = new Map(); // userId -> last code generation time
 
 // The alphabet excludes look-alike characters so a code can be read aloud.
 const CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
@@ -197,6 +198,18 @@ function command(userId, cmd, sourceLabel) {
 // ---- pairing -------------------------------------------------------------
 
 function createPairing(userId, sessionId, options = {}) {
+  // A signed-in operator must not be able to mint codes in an endless stream.
+  const cooldownMs = (config.pairingCooldownSeconds || 0) * 1000;
+  const last = pairingRequests.get(userId);
+  if (cooldownMs > 0 && last && now() - last < cooldownMs) {
+    const retryAfter = Math.ceil((cooldownMs - (now() - last)) / 1000);
+    return {
+      ok: false,
+      error: `Wait ${retryAfter} second${retryAfter === 1 ? '' : 's'} before requesting a new pairing code.`,
+      retry_after_seconds: retryAfter
+    };
+  }
+
   // Invalidate any earlier unused code so a screen is never cluttered with
   // codes that all still work.
   for (const [code, record] of pairing) {
@@ -214,8 +227,15 @@ function createPairing(userId, sessionId, options = {}) {
     consumed: false
   };
   pairing.set(code, record);
+  pairingRequests.set(userId, now());
   log.info('pairing code created', { user: userId });
-  return { code, expiresAt: record.expiresAt, expires_in_seconds: Math.round(PAIRING_TTL_MS / 1000) };
+  return {
+    ok: true,
+    code,
+    expiresAt: record.expiresAt,
+    expires_in_seconds: Math.round(PAIRING_TTL_MS / 1000),
+    cooldown_seconds: config.pairingCooldownSeconds || 0
+  };
 }
 
 function activePairingCount(userId) {

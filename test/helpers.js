@@ -29,6 +29,9 @@ async function startServer(extraEnv = {}) {
       RATE_LIMIT_MAX_WRITE: '100000',
       RATE_LIMIT_MAX_PAIRING: '10000',
       RATE_LIMIT_MAX_REMOTE_COMMAND: '100000',
+      // Tests generate many codes back to back; the dedicated cooldown test
+      // overrides this to prove the throttle works.
+      PAIRING_COOLDOWN_SECONDS: '0',
       ...extraEnv
     },
     stdio: ['ignore', 'pipe', 'pipe']

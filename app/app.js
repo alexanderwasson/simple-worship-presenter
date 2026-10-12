@@ -1292,6 +1292,7 @@ async function openRemoteDialog() {
 async function createPairing() {
   const loading = $('#pairQrLoading');
   const qr = $('#pairQr');
+  const refresh = $('#pairRefresh');
   if (loading) loading.hidden = false;
   if (qr) qr.hidden = true;
   try {
@@ -1305,9 +1306,46 @@ async function createPairing() {
     } else if (loading) {
       loading.textContent = 'Scan unavailable — type the code instead.';
     }
+    startCooldown(data.cooldown_seconds || 0);
   } catch (e) {
+    // 429 means the cooldown is running: show the remaining wait rather than an error.
+    const wait = (e.body && e.body.retry_after_seconds) || 0;
+    if (e.status === 429 && wait) {
+      if (loading) {
+        loading.hidden = false;
+        loading.textContent = 'A new code can be requested in ' + wait + ' second' + (wait === 1 ? '' : 's') + '.';
+      }
+      startCooldown(wait);
+      return;
+    }
     if (loading) loading.textContent = e.message;
+    if (refresh) refresh.disabled = false;
   }
+}
+
+let cooldownTimer = null;
+function startCooldown(seconds) {
+  const refresh = $('#pairRefresh');
+  if (!refresh) return;
+  clearInterval(cooldownTimer);
+  let remaining = Math.ceil(seconds || 0);
+  if (remaining <= 0) {
+    refresh.disabled = false;
+    refresh.textContent = 'New code';
+    return;
+  }
+  refresh.disabled = true;
+  refresh.textContent = 'New code in ' + remaining + 's';
+  cooldownTimer = setInterval(() => {
+    remaining -= 1;
+    if (remaining <= 0) {
+      clearInterval(cooldownTimer);
+      refresh.disabled = false;
+      refresh.textContent = 'New code';
+      return;
+    }
+    refresh.textContent = 'New code in ' + remaining + 's';
+  }, 1000);
 }
 
 async function loadDevices() {
