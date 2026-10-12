@@ -23,7 +23,7 @@ media, and project lyrics to a second screen — on our hosted service or on you
 - **Mobile remote** — pair a phone by QR code and drive the service from the pews or the sound desk:
   previous/next, tap any slide, black screen, and live current/next previews.
 
-The software does **not** ship copyrighted song lyrics or Bible translations. Bring content you
+The software does **not** ship copyrighted song lyrics. Bring content you
 own or are licensed to use, and record your CCLI licence in Settings.
 
 ## Requirements
