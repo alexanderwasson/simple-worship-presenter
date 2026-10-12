@@ -1,8 +1,8 @@
-# Changelog
+﻿# Changelog
 
 All notable changes to Simple Worship Presenter are recorded here.
 
-## Unreleased
+## 0.3.7 — 2026-10-12
 
 ### Added
 - **Animated backgrounds (Phase 17).** Slides can now use a video or animated image from the
@@ -98,7 +98,7 @@ in place and tested; the interface work remains.
 - Exercised in a real browser at phone width: pairing from a code, the slide rundown, current/next
   previews, and `Next` moving the presentation from 1/4 to 2/4 through the server.
 
-## Unreleased
+## 0.3.7 — 2026-10-12
 
 ### Added
 - **A cooldown between pairing codes.** Generating a code is throttled per account (30 seconds by

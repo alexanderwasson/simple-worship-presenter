@@ -1,4 +1,4 @@
-'use strict';
+﻿'use strict';
 /* Simple Worship Presenter — application client.
    All user-supplied text is escaped before it reaches innerHTML. */
 const $ = (s, r = document) => r.querySelector(s);
