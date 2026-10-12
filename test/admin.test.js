@@ -254,6 +254,24 @@ test('instance maintenance', async t => {
     assert.match(confirmed.body.run.stdout, /should-not-run/);
   });
 
+  await t.test('the update result reports whether the service will restart itself', async () => {
+    const res = await server.api('/admin/update', {}, admin.cookie);
+    assert.equal(typeof res.body.auto_restart, 'boolean', 'the dashboard must know if it can self-restart');
+
+    // Under a plain `node server.js` there is no supervisor, so the service must
+    // not be restarted automatically or it would never come back.
+    const configured = await startServer({ UPDATE_COMMAND: 'echo done' });
+    t.after(() => configured.stop());
+    const setup = await configured.api('/setup/admin', {
+      method: 'POST',
+      body: { name: 'Admin', email: 'restart@example.com', password: 'a-valid-password-here' }
+    });
+    const cookie = configured.cookieFrom(setup);
+    const run = await configured.api('/admin/update/run', { method: 'POST', body: { confirm: true } }, cookie);
+    assert.equal(run.status, 200);
+    assert.equal(run.body.run.restarting, false, 'an unsupervised process must not exit itself');
+  });
+
   await t.test('the dashboard reports which update tools are actually available', async () => {
     const res = await server.api('/admin/update', {}, admin.cookie);
     assert.equal(typeof res.body.commands, 'object');

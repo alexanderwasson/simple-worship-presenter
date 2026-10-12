@@ -1630,6 +1630,9 @@ async function wireUpdatePanel() {
     let runHint = info.command_configured
       ? 'Command: ' + info.update_command + (info.update_command_source === 'environment' ? '  (set in .env)' : '  (built-in default)')
       : 'Disabled — set UPDATE_COMMAND in .env to enable';
+    if (info.command_configured && info.auto_restart) {
+      runHint += ' — the service restarts itself afterwards';
+    }
     const missing = Object.entries(info.commands || {}).filter(([, ok]) => !ok).map(([name]) => name);
     if (missing.length) {
       runHint += ` — ⚠ ${missing.join(' and ')} not found on PATH, so this will fail`;
@@ -1668,8 +1671,13 @@ async function wireUpdatePanel() {
       show(`<p><strong>Update finished.</strong> Exit code ${run.exit_code}.</p>
         ${run.stdout ? `<pre class="update-log">${esc(run.stdout)}</pre>` : ''}
         ${run.stderr ? `<pre class="update-log">${esc(run.stderr)}</pre>` : ''}
-        <p class="restart-notice"><strong>Restart required.</strong> The new code is installed but not running yet.
-        Restart the service — <code>pm2 restart simple-worship-presenter</code> — then reload this page.</p>`);
+        ${run.restarting
+          ? `<p class="restart-notice"><strong>Restarting the service</strong> to activate the new version. This page will reload in a moment.</p>`
+          : `<p class="restart-notice"><strong>Restart required.</strong> The new code is installed but not running yet.
+             Restart the service — <code>pm2 restart simple-worship-presenter</code> — then reload this page.</p>`}`);
+      if (run.restarting) {
+        setTimeout(() => location.reload(), 5000);
+      }
     } catch (e) {
       const run = e.body && e.body.run;
       show(`<p><strong>Update failed.</strong> ${esc(e.message)}</p>

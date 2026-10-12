@@ -541,6 +541,7 @@ router.get('/admin/update', auth.requireAdmin, (req, res) => {
     check_url_source: config.updateCheckUrlSource,
     update_command_source: config.updateCommandSource,
     commands: commandStatus(),
+    auto_restart: process.env.pm_id !== undefined || process.env.NODE_APP_INSTANCE !== undefined,
     last_check: db.getSetting('update:last_check', null),
     last_run: db.getSetting('update:last_run', null),
     stats: db.stats()
@@ -601,6 +602,21 @@ router.post('/admin/update/run', auth.requireAdmin, async (req, res) => {
   await db.setSetting('update:last_run', result);
   log.info('admin update finished', { ok: result.ok, exit_code: result.exit_code });
   if (!result.ok) return res.status(500).json({ error: 'Update command failed', run: result });
+
+  // Restart only once the response is on the wire. Killing the process earlier
+  // would lose the result the operator needs to see. Safe only when a process
+  // manager is supervising us and will bring us back with the new code.
+  const supervised = process.env.pm_id !== undefined || process.env.NODE_APP_INSTANCE !== undefined;
+  if (supervised) {
+    result.restarting = true;
+    db.setSetting('update:last_run', result);
+    setTimeout(() => {
+      log.info('restarting to activate update');
+      process.exit(0);
+    }, 1500).unref?.();
+  } else {
+    result.restarting = false;
+  }
   res.json({ run: result });
 });
 
