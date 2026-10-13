@@ -1989,7 +1989,7 @@ const MENUS = {
   File: [
     ['New presentation', () => newPresentation()],
     ['Save', () => saveDeck()],
-    ['Import text file', () => $('#importInput').click()],
+    ['Import backup…', () => $('#importInput').click()],
     ['Sign out', () => api('/auth/logout', { method: 'POST' }).then(() => location.reload())]
   ],
   Edit: [
@@ -2128,6 +2128,25 @@ function wire() {
   $('#importInput').onchange = async e => {
     const file = e.target.files[0];
     if (!file) return;
+    e.target.value = '';
+
+    // A converted backup manifest or an archive: use the package importer so
+    // songs, presentations and service plans are actually created.
+    const isPackage = /\.(zip|ssbpck|swp|json)$/i.test(file.name);
+    if (isPackage) {
+      toast('Importing ' + file.name + '…');
+      try {
+        const form = new FormData();
+        form.append('file', file);
+        const result = await api('/import/package', { method: 'POST', body: form });
+        await Promise.all([loadPresentations(), loadSongs?.(), loadPrograms?.()]);
+        showImportSummary(file.name, result.summary, result.meta);
+      } catch (err) {
+        toast(err.message, 'error');
+      }
+      return;
+    }
+
     const text = await file.text();
     const chunks = text.split(/\r?\n\s*\r?\n/).map(x => x.trim()).filter(Boolean);
     if (!chunks.length) return toast('No slide content found in that file', 'error');
@@ -2135,8 +2154,28 @@ function wire() {
     await loadPresentations();
     openDeck(state.presentations.find(p => p.id === created.id) || created);
     toast(chunks.length + ' slides imported');
-    e.target.value = '';
   };
+
+  function showImportSummary(filename, summary, meta) {
+    const s = summary || {};
+    const rows = [
+      ['Songs', s.songs], ['Presentations', s.presentations],
+      ['Service plans', s.programs], ['Media', s.media]
+    ].filter(([, n]) => n);
+    const skipped = s.skipped || [];
+    const warnings = s.warnings || [];
+    modal(`
+      <h2>Import complete</h2>
+      <p><strong>${esc(filename)}</strong></p>
+      <div class="import-summary">
+        ${rows.map(([label, n]) => `<div><span>${label}</span><b>${n}</b></div>`).join('')}
+      </div>
+      ${skipped.length ? `<p class="legal-note">${skipped.length} item${skipped.length === 1 ? '' : 's'} skipped: ${esc(skipped.slice(0, 3).map(x => x.name + ' (' + x.reason + ')').join(' · '))}${skipped.length > 3 ? ' …' : ''}</p>` : ''}
+      ${warnings.length ? `<p class="legal-note">${warnings.length} note${warnings.length === 1 ? '' : 's'}: ${esc(warnings.slice(0, 3).join(' · '))}</p>` : ''}
+      <div class="modal-actions"><button class="primary-button" id="importDone">Open library</button></div>`);
+    $('#importDone').onclick = () => { closeModal(); showView('library'); };
+    toast(`${s.presentations || 0} presentations, ${s.songs || 0} songs and ${s.programs || 0} service plans imported`);
+  }
 
   $$('#canvasToolbar [data-tool]').forEach(b => b.onclick = () => {
     const tool = b.dataset.tool;

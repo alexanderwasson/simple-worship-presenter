@@ -6,14 +6,16 @@ const path = require('path');
 const os = require('os');
 const fs = require('fs');
 
-const PORT = 3999;
+// PORT=0 lets the OS pick a free port. A fixed port makes the smoke test talk to
+// whatever else happens to be listening, and then fail in confusing ways.
+let port = 0;
 const DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'swp-smoke-'));
 const root = path.join(__dirname, '..');
 const failures = [];
 
 function get(pathname) {
   return new Promise((resolve, reject) => {
-    const req = http.get({ host: '127.0.0.1', port: PORT, path: pathname }, res => {
+    const req = http.get({ host: '127.0.0.1', port, path: pathname }, res => {
       let body = '';
       res.on('data', c => (body += c));
       res.on('end', () => resolve({ status: res.statusCode, body }));
@@ -34,22 +36,40 @@ function assert(name, condition, detail) {
 
 const server = spawn(process.execPath, ['server.js'], {
   cwd: root,
-  env: { ...process.env, PORT: String(PORT), DATA_DIR, SESSION_SECRET: 'smoke-test-secret' },
+  env: {
+    ...process.env,
+    PORT: '0',
+    DATA_DIR,
+    SESSION_SECRET: 'smoke-test-secret',
+    // Must allow `info`: the server reports its OS-assigned port in the
+    // "server started" line, and this script reads it from stdout.
+    LOG_LEVEL: 'info'
+  },
   stdio: ['ignore', 'pipe', 'pipe']
 });
 
 let started = false;
-server.stdout.on('data', () => (started = true));
+server.stdout.on('data', d => {
+  started = true;
+  for (const line of d.toString().split(/\r?\n/)) {
+    if (!line.trim()) continue;
+    try {
+      const entry = JSON.parse(line);
+      if (entry.msg === 'server started' && entry.port) port = entry.port;
+    } catch { /* not a structured log line */ }
+  }
+});
 server.stderr.on('data', d => process.stderr.write(d));
 
 async function waitForServer() {
-  for (let i = 0; i < 50; i++) {
-    try {
-      await get('/api/health');
-      return true;
-    } catch {
-      await new Promise(r => setTimeout(r, 100));
+  for (let i = 0; i < 100; i++) {
+    if (port) {
+      try {
+        await get('/api/health');
+        return true;
+      } catch { }
     }
+    await new Promise(r => setTimeout(r, 100));
   }
   return false;
 }
@@ -90,7 +110,7 @@ async function waitForServer() {
   assert('error responses use {error}', (() => { try { return typeof JSON.parse(missing.body).error === 'string'; } catch { return false; } })(), missing.body.slice(0, 80));
 
   console.log('smoke: registration creates a scoped account');
-  const req = http.request({ host: '127.0.0.1', port: PORT, path: '/api/auth/register', method: 'POST', headers: { 'Content-Type': 'application/json' } }, res => {
+  const req = http.request({ host: '127.0.0.1', port, path: '/api/auth/register', method: 'POST', headers: { 'Content-Type': 'application/json' } }, res => {
     let body = '';
     res.on('data', c => (body += c));
     res.on('end', () => {

@@ -2,7 +2,49 @@
 
 All notable changes to Simple Worship Presenter are recorded here.
 
-## 0.3.7 — 2026-10-12
+## 0.3.8 - 2026-10-13
+
+### Fixed
+- **The Import button on the site now actually imports a backup.** Every file handed to it was
+  being sent to the old plain-text importer, which split the file on blank lines and turned the
+  whole backup into a single presentation of junk slides - no songs, no presentations, no service
+  plans. Converted backups (`swp-import.json`) and package archives are now routed to the package
+  importer, so songs, presentations and service plans are really created.
+- **Slide animations and animated backgrounds no longer vanish on save.** Saving a presentation
+  stripped every slide back to plain text, so typing effects, animations and video backgrounds
+  looked right while editing and were gone after a reload. Slides now keep their styling and
+  animated background through a save and reload, including when you edit only one slide.
+- Media records in a converted backup are read whether the converter called the field `path`,
+  `file` or `name`, so bundled media is extracted instead of being reported as missing.
+
+### Added
+- **Package archives.** Import accepts a ZIP that carries `swp-import.json` together with its
+  `media/` folder, as well as a bare manifest. Media is extracted and slide backgrounds are linked
+  to it by name. Paths inside an archive are checked so a package cannot write outside its
+  upload area.
+- **An import summary.** When an import finishes you now see what was created - songs,
+  presentations, service plans and media - along with anything skipped and why, and any service
+  plan entry that could not be matched to a presentation. Nothing is dropped in silence.
+- The import control is reachable by keyboard and by screen readers, and no longer silently
+  accepts files the app cannot use.
+- `PUT /api/presentations/:id` returns the saved presentation, matching `POST`, so a save can be
+  verified rather than assumed.
+
+### Verification
+Imported a real SongShow Plus backup converted with `sspbck2swp` - **154 songs, 158 presentations
+and 142 service plans** - through the Import button in the browser, not just the API. 140 of the
+142 service plans resolved their presentations, giving 673 links with **zero** that point at
+nothing; the remaining 2 plans carry no presentations in the source. The 32 media files in that
+backup are reported as skipped when only the manifest is supplied, rather than failing the import.
+
+The animation fix was checked end to end in the browser: an animation was chosen in the editor,
+saved, and confirmed still set after a full page reload.
+
+187 automated tests pass. New tests cover manifest import, service plan link resolution, unmatched
+title reporting, missing media, ZIP packages, rejection of non-packages, and that slide styling
+and animated backgrounds survive both a save and an edit that does not touch them.
+
+## 0.3.7 - 2026-10-12
 
 ### Added
 - **Animated backgrounds (Phase 17).** Slides can now use a video or animated image from the
@@ -98,7 +140,7 @@ in place and tested; the interface work remains.
 - Exercised in a real browser at phone width: pairing from a code, the slide rundown, current/next
   previews, and `Next` moving the presentation from 1/4 to 2/4 through the server.
 
-## 0.3.7 — 2026-10-12
+## 0.3.6 — 2026-10-12
 
 ### Added
 - **A cooldown between pairing codes.** Generating a code is throttled per account (30 seconds by

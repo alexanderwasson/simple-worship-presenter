@@ -259,7 +259,8 @@ router.put('/presentations/:id', auth.requireAuth, writeLimiter(), async (req, r
   if (req.body.bg !== undefined) row.bg_json = JSON.stringify(req.body.bg || null);
   row.updated_at = db.now();
   await db.recomputeUsage(req.user.id);
-  res.json({ ok: true });
+  // Return the saved deck so callers can verify what actually persisted.
+  res.json({ id: row.id, title: row.title, slides: safeSlides(row.slides_json), bg: parseBg(row.bg_json) });
 });
 
 router.post('/presentations/:id/duplicate', auth.requireAuth, writeLimiter(), async (req, res) => {

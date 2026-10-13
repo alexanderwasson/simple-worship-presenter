@@ -314,3 +314,8 @@
 .slide-canvas .canvas-kicker{position:relative}
 .slide-canvas #canvasTitle{position:relative}
 .canvas-orb{z-index:0}
+
+.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.import-summary{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:16px 0}
+.import-summary div{display:flex;justify-content:space-between;align-items:center;padding:11px 13px;background:#f7f7f3;border:1px solid var(--line);border-radius:7px}
+.import-summary span{font-size:11px;color:#77766f}.import-summary b{font:600 15px 'DM Mono';color:var(--orange)}

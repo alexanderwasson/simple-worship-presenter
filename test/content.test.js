@@ -139,3 +139,55 @@ test('presentations and service plans', async t => {
     assert.equal(created.body.slides[0], payload);
   });
 });
+
+test('slide animations and animated backgrounds survive a save and reload', async t => {
+  const server = await startServer();
+  t.after(() => server.stop());
+  const { cookie } = await signIn(server);
+
+  const slides = [
+    {
+      text: 'Amazing grace', name: 'Verse 1',
+      style: { animation: 'words', font: 'Manrope', weight: 700, color: '#ffffff', align: 'center', valign: 'center', size: 42, lineHeight: 1.12 },
+      video: { id: 'vid-1', name: 'Leaves.mp4', url: '/api/media/vid-1/file', fit: 'cover', speed: 0.5, overlay: 0.3 }
+    },
+    {
+      text: 'How sweet the sound', name: 'Verse 2',
+      style: { animation: 'rise', font: 'Oswald', weight: 400, color: '#111111', align: 'left', valign: 'top', size: 30 }
+    }
+  ];
+  const bg = { kind: 'video', name: 'Ocean Sunset.mp4', url: '/api/media/bg-1/file', fit: 'cover', speed: 1, overlay: 0.2 };
+
+  const created = await server.api('/presentations', {
+    method: 'POST', body: { title: 'Animated', slides, bg }
+  }, cookie);
+  assert.equal(created.status, 201);
+
+  // Read it back from the library, exactly as the editor does after a reload.
+  const list = await server.api('/presentations', {}, cookie);
+  const deck = list.body.presentations.find(p => p.id === created.body.id);
+  assert.ok(deck, 'presentation is in the library');
+
+  assert.equal(deck.slides[0].style.animation, 'words');
+  assert.equal(deck.slides[0].style.valign, 'center');
+  assert.deepEqual(deck.slides[0].video, slides[0].video);
+  assert.equal(deck.slides[1].style.animation, 'rise');
+  assert.deepEqual(deck.bg, bg);
+
+  // An edit must not drop what it does not touch.
+  const edited = await server.api('/presentations/' + deck.id, {
+    method: 'PUT', body: { slides: deck.slides.map((s, i) => (i === 0 ? { ...s, text: 'Amazing grace!' } : s)) }
+  }, cookie);
+  assert.equal(edited.status, 200);
+  assert.equal(edited.body.slides[0].style.animation, 'words');
+  assert.deepEqual(edited.body.slides[0].video, slides[0].video);
+  assert.deepEqual(edited.body.bg, bg);
+
+  // And a fresh read of the library agrees.
+  const reread = await server.api('/presentations', {}, cookie);
+  const afterReload = reread.body.presentations.find(p => p.id === deck.id);
+  assert.equal(afterReload.slides[0].style.animation, 'words');
+  assert.deepEqual(afterReload.slides[0].video, slides[0].video);
+  assert.deepEqual(afterReload.bg, bg);
+});
+
