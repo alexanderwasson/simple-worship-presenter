@@ -2088,7 +2088,7 @@ function openModal(kind) {
     <p>This build includes the <strong>World English Bible (WEB)</strong>, a public domain translation. The name <em>World English Bible</em> is a trademark of eBible.org, and text that has been altered must not be called the World English Bible. When slides are generated from a passage the wording of the source is preserved.</p>
     <h3>Your content</h3>
     <p>Scripture text is shared installation data and does not count against your storage allowance. Any song lyrics, media or other material you add remains yours — bring only content you own or are licensed to use, and record your CCLI licence in Settings.</p>
-    <p><a href="https://simpleworshippresenter.com/terms" target="_blank" rel="noreferrer">Terms of Use</a> &nbsp;&middot;&nbsp; <a href="https://simpleworshippresenter.com/privacy" target="_blank" rel="noreferrer">Privacy</a> &nbsp;&middot;&nbsp; <a href="https://docs.simpleworshippresenter.com" target="_blank" rel="noreferrer">Documentation</a> &nbsp;&middot;&nbsp; <a href="https://simpleworshippresenter.com/self-hosting" target="_blank" rel="noreferrer">Self-hosting</a></p>`);
+    <p><a href="https://simpleworshippresenter.com/terms.html" target="_blank" rel="noreferrer">Terms of Use</a> &nbsp;&middot;&nbsp; <a href="https://simpleworshippresenter.com/privacy.html" target="_blank" rel="noreferrer">Privacy</a> &nbsp;&middot;&nbsp; <a href="https://docs.simpleworshippresenter.com" target="_blank" rel="noreferrer">Documentation</a> &nbsp;&middot;&nbsp; <a href="https://simpleworshippresenter.com/self-hosting.html" target="_blank" rel="noreferrer">Self-hosting</a></p>`);
 }
 
 /* --------------------------------------------------------------- wiring */

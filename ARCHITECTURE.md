@@ -77,8 +77,8 @@ Validated at startup; production refuses to boot without a real `SESSION_SECRET`
 | `TRUST_PROXY` | `0` | Trust `X-Forwarded-*` behind a reverse proxy |
 | `INSTANCE_NAME` | `Simple Worship Presenter` | Branding in UI and health output |
 | `PUBLIC_URL` | — | Configurable public base URL; no domain is hardcoded |
-| `DEFAULT_QUOTA_BYTES` | `26214400` | New account quota (25 MB) |
-| `MAX_UPLOAD_BYTES` | `26214400` | Largest single upload |
+| `DEFAULT_QUOTA_BYTES` | `262144000` | New account quota (250 MB) |
+| `MAX_UPLOAD_BYTES` | `262144000` | Largest single upload |
 | `ALLOW_REGISTRATION` | `1` | Close public sign-ups on self-hosted instances |
 | `LOG_LEVEL` | `info` | `debug` / `info` / `warn` / `error` |
 | `RATE_LIMIT_MAX_AUTH` | `10` | Sign-in attempts per minute per IP |
@@ -98,7 +98,7 @@ Validated at startup; production refuses to boot without a real `SESSION_SECRET`
                     sections[{ id, label, text }], theme, created_at, updated_at }],
   media:         [{ id, user_id, original_name, stored_name, mime, kind, size, created_at }],
   files:         [{ id, user_id, original_name, stored_name, mime, kind, size, created_at }],
-  settings:      { "ccli:<userId>": "...", "default_quota_bytes": 26214400 }
+  settings:      { "ccli:<userId>": "...", "default_quota_bytes": 262144000 }
 }
 ```
 

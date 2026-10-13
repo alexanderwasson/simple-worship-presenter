@@ -89,8 +89,8 @@ Create an `A` record for `app.simpleworshippresenter.com` pointing at the server
    TRUST_PROXY=1
    INSTANCE_NAME=Simple Worship Presenter
    PUBLIC_URL=https://app.simpleworshippresenter.com
-   DEFAULT_QUOTA_BYTES=26214400
-   MAX_UPLOAD_BYTES=26214400
+   DEFAULT_QUOTA_BYTES=262144000
+   MAX_UPLOAD_BYTES=262144000
    ALLOW_REGISTRATION=1
    LOG_LEVEL=info
    ```

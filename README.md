@@ -112,7 +112,7 @@ Every setting is documented in [.env.example](.env.example). The important ones:
 | --- | --- |
 | `SESSION_SECRET` | **Required in production.** Signs session tokens. |
 | `DATA_DIR` | Persistent data root. Keep it outside the release directory. |
-| `DEFAULT_QUOTA_BYTES` | Storage granted to each new account (25 MB by default). |
+| `DEFAULT_QUOTA_BYTES` | Storage granted to each new account (250 MB by default). |
 | `MAX_UPLOAD_BYTES` | Largest single upload accepted. |
 | `ALLOW_REGISTRATION` | Set `0` to close public sign-ups. |
 | `TRUST_PROXY` | Set `1` behind nginx/CloudPanel. |
