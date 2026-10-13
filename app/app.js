@@ -636,13 +636,18 @@ function slideImage(slide) {
   return slide && typeof slide === 'object' ? (slide.image || '') : '';
 }
 function slideBg(slide) {
-  return slide && typeof slide === 'object' ? (slide.background || '') : '';
+  const own = slide && typeof slide === 'object' ? (slide.background || '') : '';
+  if (own) return own;
+  // Fall back to the presentation's background so a whole song has one look.
+  return (state.deck && state.deck.bg && state.deck.bg.background) || '';
 }
 
 // Animated backgrounds are real media, stored as a reference to library media so
 // the same file can be reused across presentations without being duplicated.
 function slideVideo(slide) {
-  return slide && typeof slide === 'object' && slide.video && typeof slide.video === 'object' ? slide.video : null;
+  const own = slide && typeof slide === 'object' && slide.video && typeof slide.video === 'object' ? slide.video : null;
+  if (own) return own;
+  return (state.deck && state.deck.bg && state.deck.bg.video) || null;
 }
 
 function renderBackground(slide) {
@@ -776,7 +781,7 @@ function fitTextToSlide(canvas, title, desiredPx) {
 }
 
 function openDeck(deck, slideIndex = 0) {
-  state.deck = { id: deck.id, title: deck.title, slides: (deck.slides || []).slice() };
+  state.deck = { id: deck.id, title: deck.title, slides: (deck.slides || []).slice(), bg: deck.bg || null };
   state.active = Math.max(0, Math.min(slideIndex, state.deck.slides.length - 1));
   state.undo = [];
   state.redo = [];
@@ -1219,7 +1224,7 @@ async function saveDeck() {
   const title = $('#editorTitle').textContent.trim() || 'Untitled presentation';
   state.deck.title = title;
   try {
-    await api('/presentations/' + state.deck.id, { method: 'PUT', body: { title, slides: state.deck.slides } });
+    await api('/presentations/' + state.deck.id, { method: 'PUT', body: { title, slides: state.deck.slides, bg: state.deck.bg } });
     status('Saved just now');
   } catch (e) {
     status('Save failed');
@@ -2281,7 +2286,7 @@ async function openBackgroundPicker() {
     </div>
     <div class="bg-choice" style="margin-top:14px">
       <button id="bgApplySlide" disabled>Apply to this slide</button>
-      <button id="bgApplyAll" disabled>Apply to every slide</button>
+      <button id="bgApplyAll" disabled>Apply to every slide</button><button id="bgApplyDeck" disabled>Apply to this presentation</button>
     </div>
     <div class="modal-actions"><button class="secondary-button" id="bgCancel">Cancel</button></div>
     <p class="legal-note">Background videos play silently and loop. If a browser blocks autoplay the first frame stays visible. Reduced-motion settings hide moving backgrounds in the editor.</p>`);
@@ -2297,6 +2302,8 @@ async function openBackgroundPicker() {
     chosen = { id: btn.dataset.media, kind: btn.dataset.kind };
     $('#bgApplySlide').disabled = false;
     $('#bgApplyAll').disabled = false;
+    const deckBtn = document.getElementById('bgApplyDeck');
+    if (deckBtn) deckBtn.disabled = false;
   });
 
   const build = () => {
@@ -2340,5 +2347,25 @@ async function openBackgroundPicker() {
     saveDeck();
     closeModal();
     toast(media.kind === 'video' ? 'Animated background applied to every slide' : 'Background applied to every slide');
+  };
+
+  // Presentation-level: every slide inherits it, and it follows the presentation
+  // when a service plan moves to the next one.
+  const deckBtn = document.getElementById('bgApplyDeck');
+  if (deckBtn) deckBtn.onclick = () => {
+    const media = items.find(m => m.id === chosen.id);
+    state.deck.bg = media.kind === 'video'
+      ? { video: build() }
+      : { background: 'url("/api/media/' + media.id + '/file") center/cover no-repeat' };
+    state.deck.slides = state.deck.slides.map(s => {
+      const obj = slideObject(s);
+      delete obj.video;
+      delete obj.background;
+      return obj;
+    });
+    renderEditor();
+    saveDeck();
+    closeModal();
+    toast('Presentation background set — it follows this presentation');
   };
 }

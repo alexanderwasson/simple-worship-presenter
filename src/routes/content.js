@@ -192,7 +192,7 @@ router.get('/presentations', auth.requireAuth, (req, res) => {
   res.json({
     presentations: db.allOwned('presentations', req.user.id)
       .sort((a, b) => b.updated_at.localeCompare(a.updated_at))
-      .map(p => ({ ...p, slides: safeSlides(p.slides_json) }))
+      .map(p => ({ ...p, slides: safeSlides(p.slides_json), bg: parseBg(p.bg_json) }))
   });
 });
 
@@ -202,6 +202,18 @@ function safeSlides(raw) {
     return Array.isArray(parsed) ? parsed.slice(0, 500) : [];
   } catch {
     return [];
+  }
+}
+
+// A presentation carries a default background that every slide inherits unless
+// a slide sets its own. Stored separately from slides so switching presentation
+// in a service plan switches the look with it.
+function parseBg(raw) {
+  try {
+    const parsed = JSON.parse(raw || 'null');
+    return parsed && typeof parsed === 'object' ? parsed : null;
+  } catch {
+    return null;
   }
 }
 
@@ -227,11 +239,12 @@ router.post('/presentations', auth.requireAuth, writeLimiter(), async (req, res)
     user_id: req.user.id,
     title: String(req.body.title || 'Untitled presentation').slice(0, 200),
     slides_json: JSON.stringify(normaliseSlides(req.body.slides)),
+    bg_json: JSON.stringify(req.body.bg || null),
     created_at: now,
     updated_at: now
   };
   await db.insert('presentations', row);
-  res.status(201).json({ id: row.id, title: row.title, slides: safeSlides(row.slides_json) });
+  res.status(201).json({ id: row.id, title: row.title, slides: safeSlides(row.slides_json), bg: parseBg(row.bg_json) });
 });
 
 router.put('/presentations/:id', auth.requireAuth, writeLimiter(), async (req, res) => {
@@ -239,6 +252,7 @@ router.put('/presentations/:id', auth.requireAuth, writeLimiter(), async (req, r
   if (!row) return jsonError(res, 404, 'Presentation not found');
   if (req.body.title !== undefined) row.title = String(req.body.title).slice(0, 200);
   if (req.body.slides !== undefined) row.slides_json = JSON.stringify(normaliseSlides(req.body.slides));
+  if (req.body.bg !== undefined) row.bg_json = JSON.stringify(req.body.bg || null);
   row.updated_at = db.now();
   await db.recomputeUsage(req.user.id);
   res.json({ ok: true });
@@ -253,11 +267,12 @@ router.post('/presentations/:id/duplicate', auth.requireAuth, writeLimiter(), as
     user_id: req.user.id,
     title: (row.title + ' copy').slice(0, 200),
     slides_json: row.slides_json,
+    bg_json: row.bg_json,
     created_at: now,
     updated_at: now
   };
   await db.insert('presentations', copy);
-  res.status(201).json({ id: copy.id, title: copy.title, slides: safeSlides(copy.slides_json) });
+  res.status(201).json({ id: copy.id, title: copy.title, slides: safeSlides(copy.slides_json), bg: parseBg(copy.bg_json) });
 });
 
 router.delete('/presentations/:id', auth.requireAuth, async (req, res) => {
