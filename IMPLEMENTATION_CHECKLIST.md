@@ -73,7 +73,7 @@ Verified by the test suite where possible; unverified work is marked `[~]`.
 - [ ] Additional lockout/CAPTCHA options
 
 ## Phase 4 — Storage and quotas
-- [x] 250 MB default quota per account
+- [x] 25 MB default quota per account
 - [x] Administrator-configurable default quota
 - [x] Per-account usage tracking
 - [x] Used/available storage shown in Settings

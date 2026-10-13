@@ -22,6 +22,13 @@ media, and project lyrics to a second screen — on our hosted service or on you
   blanking, direct slide selection and fullscreen.
 - **Mobile remote** — pair a phone by QR code and drive the service from the pews or the sound desk:
   previous/next, tap any slide, black screen, and live current/next previews.
+- **Built-in scripture** — the public domain World English Bible, 66 books and 1,189 chapters, stored
+  once per installation and free of any storage quota. Look up a reference or search the text, then
+  generate correctly spaced slides with verse numbers and a reference label.
+- **Animated backgrounds** — any video or animated image from your media library can back a slide or
+  a whole presentation, with an adjustable overlay to keep text readable.
+- **Import and backup** — bring in a converted backup or a package archive, and get back a summary of
+  every song, presentation and service plan created, plus anything skipped and why.
 
 The software does **not** ship copyrighted song lyrics or Bible translations. Bring content you
 own or are licensed to use, and record your CCLI licence in Settings.
@@ -105,7 +112,7 @@ Every setting is documented in [.env.example](.env.example). The important ones:
 | --- | --- |
 | `SESSION_SECRET` | **Required in production.** Signs session tokens. |
 | `DATA_DIR` | Persistent data root. Keep it outside the release directory. |
-| `DEFAULT_QUOTA_BYTES` | Storage granted to each new account (250 MB by default). |
+| `DEFAULT_QUOTA_BYTES` | Storage granted to each new account (25 MB by default). |
 | `MAX_UPLOAD_BYTES` | Largest single upload accepted. |
 | `ALLOW_REGISTRATION` | Set `0` to close public sign-ups. |
 | `TRUST_PROXY` | Set `1` behind nginx/CloudPanel. |

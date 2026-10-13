@@ -30,7 +30,7 @@
 <body>
 <header class="site-nav">
   <a class="brand" href="index.html"><span class="brand-mark"><i></i><i></i><i></i></span><span>Simple Worship Presenter</span></a>
-  <nav class="site-links"><a href="features.html">Features</a><a href="self-hosting.html">Self-hosting</a><a href="docs.html">Docs</a><a class="primary-button" href="https://app.simpleworshippresenter.com" data-app-link>Open the app</a></nav>
+  <nav class="site-links"><a href="features.html">Features</a><a href="self-hosting.html">Self-hosting</a><a href="https://docs.simpleworshippresenter.com">Docs</a><a class="primary-button" href="https://app.simpleworshippresenter.com" data-app-link>Open the app</a></nav>
 </header>
 
 <section class="page-hero">
@@ -77,6 +77,33 @@
     <li>Only you can see your media; every request is checked against your account.</li>
   </ul>
 
+  <h2>Scripture</h2>
+  <p>The <strong>World English Bible</strong> is built in — all 66 books, 1,189 chapters. It is public domain and is stored once for the whole installation, so it never counts against your storage allowance and looking up a passage makes no external request.</p>
+  <ul>
+    <li>Look up a passage by reference: <em>John 3:16</em>, <em>Psalm 23</em>, <em>1 Cor 13:4-7</em>, <em>Gen 1:1-2:3</em>.</li>
+    <li>Search the whole translation by word or phrase.</li>
+    <li><strong>Generate slides</strong> from a passage with your own line count, optional verse numbers and a reference label. A verse is never split across slides and the wording is never trimmed to fit.</li>
+  </ul>
+
+  <h2>Importing and backing up</h2>
+  <p>Use <strong>File &rarr; Import backup&hellip;</strong> or the <strong>&#8679; Import backup</strong> button in the library. It accepts a converted backup (<code>swp-import.json</code>) or a package archive that bundles the manifest with its <code>media/</code> folder.</p>
+  <ul>
+    <li>Songs, presentations and service plans are all created — not just slide text.</li>
+    <li>Service plans are matched to the presentations that came with them.</li>
+    <li>When it finishes you see exactly what was created, plus anything skipped and why.</li>
+    <li>Media that is not bundled with the package is reported rather than failing the whole import.</li>
+    <li>Importing twice creates a second copy. It never overwrites what you already have.</li>
+  </ul>
+  <p>Backing up is the reverse: administrators can download the database from <strong>Settings</strong>. Keep a copy somewhere safe.</p>
+
+  <h2>Storage</h2>
+  <p>Everything an account stores counts against its allowance: presentations, service plans, songs and uploaded media. Scripture does not count. The meter in the sidebar shows the total live.</p>
+  <ul>
+    <li>Hosted accounts start with <strong>25 MB</strong>. An administrator can raise or lower any account.</li>
+    <li>On your own server, set the starting allowance with <code>DEFAULT_QUOTA_BYTES</code>.</li>
+    <li>Deleting a presentation, plan, song or file releases its storage immediately.</li>
+  </ul>
+
   <h2>The editor</h2>
   <table>
     <tr><th>Action</th><th>Where</th></tr>
@@ -87,6 +114,16 @@
     <tr><td>Save</td><td>Autosaves as you type; <kbd>Ctrl/Cmd</kbd> + <kbd>S</kbd> forces a save</td></tr>
     <tr><td>Rename</td><td>Click the presentation title</td></tr>
   </table>
+
+  <h2>Backgrounds and animation</h2>
+  <p>Any image or video in your media library can become a background — for a single slide, or for a whole presentation so every slide shares it.</p>
+  <ul>
+    <li><strong>🎞 Animated background</strong> in the slide panel picks a video or animated image. It plays silently and loops.</li>
+    <li><strong>Overlay</strong> darkens the background so text stays readable over bright footage.</li>
+    <li>Remove a background and the underlying media file stays in your library.</li>
+    <li>Each slide also has an <strong>Animation</strong> — none, fade, rise, blur, scale, or word by word — which replays whenever the slide is shown.</li>
+    <li>Everything you set here is saved with the slide and follows you to the projector. Anyone with reduced motion enabled sees a still frame instead.</li>
+  </ul>
 
   <h2>The audience display</h2>
   <p>Choose <strong>Tools → Audience display</strong> or the <strong>Live</strong> button. A separate window opens for the projector.</p>
@@ -153,7 +190,7 @@
 <footer class="site-footer">
   <a class="brand" href="index.html"><span class="brand-mark"><i></i><i></i><i></i></span><span>Simple Worship Presenter</span></a>
   <span>Independent software by <a href="https://alexanderwasson.dev/" rel="noreferrer">Alexander Wasson</a>.</span>
-  <nav><a href="features.html">Features</a><a href="self-hosting.html">Self-hosting</a><a href="docs.html">Docs</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></nav>
+  <nav><a href="features.html">Features</a><a href="self-hosting.html">Self-hosting</a><a href="https://docs.simpleworshippresenter.com">Docs</a><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></nav>
 </footer>
 <script src="site.js" defer></script>
 </body>
