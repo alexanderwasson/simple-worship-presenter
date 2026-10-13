@@ -77,7 +77,8 @@ function normaliseSlides(list) {
         image: String(s.image || '').slice(0, 2000000),
         background: String(s.background || '').slice(0, 2000000),
         name: String(s.name || '').slice(0, 200),
-        style: s.style && typeof s.style === 'object' ? s.style : undefined
+        style: s.style && typeof s.style === 'object' ? s.style : undefined,
+        video: s.video && typeof s.video === 'object' ? s.video : undefined
       };
     }
     return '';

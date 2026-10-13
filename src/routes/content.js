@@ -226,6 +226,10 @@ function normaliseSlides(input) {
       if (s.image) out.image = String(s.image).slice(0, 2000000);
       if (s.background) out.background = String(s.background).slice(0, 2000000);
       if (s.name) out.name = String(s.name).slice(0, 200);
+      // Typing, animation and animated backgrounds live on the slide and must
+      // survive a save and reload.
+      if (s.style && typeof s.style === 'object') out.style = s.style;
+      if (s.video && typeof s.video === 'object') out.video = s.video;
       return out;
     }
     return '';
