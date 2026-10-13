@@ -101,6 +101,9 @@ function slidePayload(session) {
     // A slide may override the presentation background; otherwise inherit it.
     video: ownVideo || (session.bg && session.bg.video) || null,
     background: ownBg || (session.bg && session.bg.background) || '',
+    overlay: (ownVideo && ownVideo.overlay !== undefined ? ownVideo.overlay : undefined)
+      ?? (session.bg && session.bg.overlay !== undefined ? session.bg.overlay : undefined)
+      ?? (session.bg && session.bg.video ? session.bg.video.overlay : undefined),
     style: (slide && typeof slide === 'object' ? slide.style : null) || {},
     kicker: (session.title || '').toUpperCase(),
     footer: session.footer || ''

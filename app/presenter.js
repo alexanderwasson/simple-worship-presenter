@@ -94,10 +94,20 @@ function receive(msg) {
   titleEl.style.letterSpacing = /Bebas|Oswald/.test(font) ? '0.02em' : '-0.025em';
   stage.style.justifyContent = { top: 'flex-start', center: 'center', bottom: 'flex-end' }[style.valign || 'center'] || 'center';
 
-  // Animated backgrounds are real media, played silently and looped.
+  // Animated backgrounds are real media, played silently and looped. The dark
+  // overlay is for text contrast, so it applies over still backgrounds too.
   const video = document.getElementById('stageVideo');
   const overlay = document.getElementById('stageOverlay');
-  if (video && overlay) {
+  if (overlay) {
+    const media = msg.video;
+    const hasBackground = Boolean((media && media.url) || msg.background);
+    overlay.hidden = !hasBackground;
+    const level = msg.overlay !== undefined && msg.overlay !== null
+      ? Number(msg.overlay)
+      : (media && media.overlay !== undefined ? Number(media.overlay) : 0.35);
+    overlay.style.background = 'rgba(0,0,0,' + level + ')';
+  }
+  if (video) {
     const media = msg.video;
     if (media && media.url) {
       if (video.dataset.src !== media.url) {
@@ -110,14 +120,11 @@ function receive(msg) {
       video.style.objectFit = media.fit || 'cover';
       const played = video.play?.();
       if (played && played.catch) played.catch(() => { /* autoplay blocked; first frame shows */ });
-      overlay.hidden = false;
-      overlay.style.background = 'rgba(0,0,0,' + Number(media.overlay ?? 0.35) + ')';
     } else {
       video.hidden = true;
       video.removeAttribute('src');
       video.dataset.src = '';
       video.pause?.();
-      overlay.hidden = true;
     }
   }
 

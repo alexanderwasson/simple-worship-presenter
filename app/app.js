@@ -656,12 +656,19 @@ function renderBackground(slide) {
   const overlay = $('#canvasOverlay');
   if (!video || !overlay) return;
   const media = slideVideo(slide);
+  const css = slideBg(slide);
+
+  // The overlay exists for contrast over any busy background — moving or still.
+  const needsOverlay = Boolean((media && media.url) || css);
+  overlay.hidden = !needsOverlay;
+  const level = Number((media && media.overlay) ?? (state.deck && state.deck.bg && state.deck.bg.overlay) ?? 0.35);
+  overlay.style.background = `rgba(0,0,0,${level})`;
+  canvas.classList.toggle('text-shadowed', level > 0.15);
 
   if (!media || !media.url) {
     video.hidden = true;
     video.removeAttribute('src');
     video.pause?.();
-    overlay.hidden = true;
     return;
   }
 
@@ -674,10 +681,6 @@ function renderBackground(slide) {
   video.style.objectFit = media.fit || 'cover';
   const play = video.play?.();
   if (play && play.catch) play.catch(() => { /* autoplay blocked: poster frame stays */ });
-
-  overlay.hidden = false;
-  overlay.style.background = `rgba(0,0,0,${Number(media.overlay ?? 0.35)})`;
-  canvas.classList.toggle('text-shadowed', Number(media.overlay ?? 0.35) > 0.15);
 }
 
 // Font choices offered in the slide editor. Each maps to a Google Fonts family
@@ -2356,8 +2359,8 @@ async function openBackgroundPicker() {
   if (deckBtn) deckBtn.onclick = () => {
     const media = items.find(m => m.id === chosen.id);
     state.deck.bg = media.kind === 'video'
-      ? { video: build() }
-      : { background: 'url("/api/media/' + media.id + '/file") center/cover no-repeat' };
+      ? { video: build(), overlay: Number(overlay.value) }
+      : { background: 'url("/api/media/' + media.id + '/file") center/cover no-repeat', overlay: Number(overlay.value) };
     state.deck.slides = state.deck.slides.map(s => {
       const obj = slideObject(s);
       delete obj.video;
