@@ -98,7 +98,7 @@ function receive(msg) {
   const video = document.getElementById('stageVideo');
   const overlay = document.getElementById('stageOverlay');
   if (video && overlay) {
-    const media = m.video;
+    const media = msg.video;
     if (media && media.url) {
       if (video.dataset.src !== media.url) {
         video.dataset.src = media.url;
