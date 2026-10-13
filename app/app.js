@@ -1250,6 +1250,7 @@ const LiveLink = {
       presentation_id: state.deck ? state.deck.id : null,
       index: state.active,
       blank: state.blanked,
+      bg: state.deck ? state.deck.bg : null,
       // When a service plan is live the phone can walk the whole running order.
       plan: state.plan ? {
         id: state.plan.id,

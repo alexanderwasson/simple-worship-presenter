@@ -66,7 +66,7 @@ function receive(msg) {
   index = typeof msg.index === 'number' ? msg.index : index;
   total = msg.count || total;
 
-  if (msg.background) stage.style.background = msg.background;
+  stage.style.background = msg.background || 'linear-gradient(135deg,#b96b4d,#d59063)';
   kickerEl.textContent = msg.kicker || 'SIMPLE WORSHIP PRESENTER';
   footerEl.textContent = msg.footer || 'Simple Worship Presenter';
 

@@ -70,6 +70,7 @@ router.post('/state', auth.requireAuth, (req, res) => {
     presentation_id: req.body.presentation_id,
     index: req.body.index,
     blank: req.body.blank,
+    bg: req.body.bg,
     plan: req.body.plan,
     plan_index: req.body.plan_index
   });

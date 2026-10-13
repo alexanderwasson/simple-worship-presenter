@@ -89,6 +89,7 @@ function attach(server, config) {
       presentation_id: message.presentation_id,
       index: message.index,
       blank: message.blank,
+      bg: message.bg,
       plan: message.plan,
       plan_index: message.plan_index
     });

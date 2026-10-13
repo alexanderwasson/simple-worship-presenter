@@ -89,13 +89,17 @@ function normaliseSlides(list) {
 function slidePayload(session) {
   const slide = session.slides[session.index] || '';
   const text = slideTextOf(slide);
+  const ownBg = (slide && typeof slide === 'object' ? slide.background : '') || '';
+  const ownVideo = (slide && typeof slide === 'object' ? slide.video : null) || null;
   return {
     type: 'slide',
     index: session.index,
     title: text,
     image: (slide && typeof slide === 'object' ? slide.image : '') || '',
     count: session.slides.length,
-    background: (slide && typeof slide === 'object' ? slide.background : '') || '',
+    // A slide may override the presentation background; otherwise inherit it.
+    video: ownVideo || (session.bg && session.bg.video) || null,
+    background: ownBg || (session.bg && session.bg.background) || '',
     style: (slide && typeof slide === 'object' ? slide.style : null) || {},
     kicker: (session.title || '').toUpperCase(),
     footer: session.footer || ''
@@ -114,6 +118,7 @@ function getState(userId) {
       slides: [],
       index: 0,
       blank: false,
+      bg: null,
       version: 0,
       updatedAt: now(),
       revision: 0,
@@ -167,6 +172,7 @@ function publish(userId, input) {
   if (typeof input.title === 'string') session.title = input.title.slice(0, 200);
   if (typeof input.footer === 'string') session.footer = input.footer.slice(0, 200);
   if (typeof input.presentation_id === 'string') session.presentationId = input.presentation_id.slice(0, 100);
+  if (input.bg !== undefined) session.bg = input.bg && typeof input.bg === 'object' ? input.bg : null;
 
   // A live service plan lets a remote walk from one song into the next. The
   // workspace sends `plan: null` when no plan is active, which must clear it.
