@@ -1,4 +1,4 @@
-﻿'use strict';
+'use strict';
 /* Simple Worship Presenter — application client.
    All user-supplied text is escaped before it reaches innerHTML. */
 const $ = (s, r = document) => r.querySelector(s);
@@ -753,11 +753,26 @@ function applySlideStyle(style) {
   canvas.style.textAlign = style.align;
   canvas.style.justifyContent = { top: 'flex-start', center: 'center', bottom: 'flex-end' }[style.valign] || 'center';
   title.style.fontFamily = FONT_STACKS[style.font] || FONT_STACKS.Manrope;
-  title.style.fontSize = Math.round((Number(style.size) || 62) * scale) + 'px';
   title.style.fontWeight = style.weight;
   title.style.color = style.color;
   title.style.lineHeight = style.lineHeight || 1.12;
   title.style.letterSpacing = /Bebas|Oswald/.test(style.font) ? '0.02em' : '-0.025em';
+  fitTextToSlide(canvas, title, (Number(style.size) || 62) * scale);
+}
+
+// Shrink the type until the text fits the slide. Without this a long passage
+// fills the canvas, which both clips it and leaves no room to position it.
+function fitTextToSlide(canvas, title, desiredPx) {
+  const padding = parseFloat(getComputedStyle(canvas).paddingTop) || 0;
+  const kicker = $('#canvasKicker');
+  const reserved = (kicker ? kicker.getBoundingClientRect().height : 0) + (padding * 2) + 18;
+  const available = Math.max(80, canvas.getBoundingClientRect().height - reserved);
+  let size = Math.max(11, desiredPx);
+  title.style.fontSize = size + 'px';
+  for (let i = 0; i < 12 && title.scrollHeight > available && size > 11; i++) {
+    size = Math.max(11, size * 0.88);
+    title.style.fontSize = size + 'px';
+  }
 }
 
 function openDeck(deck, slideIndex = 0) {

@@ -80,6 +80,13 @@ function receive(msg) {
   const scale = (inner && inner.clientWidth ? inner.clientWidth : 1280) / 1280;
   titleEl.style.fontFamily = FONT_STACKS[font] || FONT_STACKS.Manrope;
   titleEl.style.fontSize = Math.round((Number(style.size) || 62) * scale) + 'px';
+  // Shrink to fit so long passages are never clipped and leave room to position.
+  const available = Math.max(120, window.innerHeight * 0.62);
+  let fitted = Number(style.size || 62) * scale;
+  for (let i = 0; i < 12 && titleEl.scrollHeight > available && fitted > 12; i++) {
+    fitted *= 0.88;
+    titleEl.style.fontSize = Math.round(fitted) + 'px';
+  }
   titleEl.style.fontWeight = style.weight || 600;
   titleEl.style.color = style.color || '#ffffff';
   titleEl.style.lineHeight = style.lineHeight || 1.12;

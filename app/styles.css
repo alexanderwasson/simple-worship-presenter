@@ -276,7 +276,11 @@
 .canvas-video,.stage-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;pointer-events:none;background:#111}
 .canvas-video[hidden],.stage-video[hidden],.canvas-overlay[hidden],.stage-overlay[hidden]{display:none}
 .canvas-overlay,.stage-overlay{position:absolute;inset:0;z-index:1;pointer-events:none;background:rgba(0,0,0,.35);transition:background .2s}
-.slide-canvas>*,.present-stage .stage-inner{position:relative;z-index:2}
+/* Only the text layers sit above the media. The orbs, overlay and video stay
+   absolutely positioned so they never become flex items. */
+.canvas-kicker,#canvasTitle,.canvas-footer{z-index:2}
+.slide-canvas>.canvas-video,.slide-canvas>.canvas-overlay{z-index:0}
+.slide-canvas>.canvas-overlay{z-index:1}
 .present-stage .stage-video{z-index:0}
 .present-stage .stage-overlay{z-index:1}
 /* Text stays readable over moving imagery. */
@@ -305,3 +309,8 @@
 .bp-thumb{display:block;height:82px;border-radius:5px;background:#20242b center/cover no-repeat;position:relative;overflow:hidden}
 .bp-thumb em{position:absolute;left:7px;bottom:7px;font-style:normal;font:8px 'DM Mono';color:#fff;background:#000b;padding:3px 6px;border-radius:3px}
 .bg-picker-item small{display:block;margin-top:6px;font-size:9px;color:#7d7c75;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Vertical positioning needs the text block to be the only in-flow content. */
+.slide-canvas .canvas-kicker{position:relative}
+.slide-canvas #canvasTitle{position:relative}
+.canvas-orb{z-index:0}

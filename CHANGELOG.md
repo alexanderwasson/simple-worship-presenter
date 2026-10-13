@@ -1,4 +1,4 @@
-﻿# Changelog
+# Changelog
 
 All notable changes to Simple Worship Presenter are recorded here.
 
