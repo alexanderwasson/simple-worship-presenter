@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@400;600;700&family=Lora:wght@400;500;600;700&family=Merriweather:wght@300;400;700&family=Libre+Baskerville:wght@400;700&family=Roboto+Slab:wght@300;400;700&family=Oswald:wght@300;400;600&family=Bebas+Neue&family=Montserrat:wght@300;400;600;800&family=Poppins:wght@300;400;600;800&family=Inter:wght@300;400;600;800&family=Source+Sans+3:wght@300;400;600;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=62">
+<link rel="stylesheet" href="styles.css?v=64">
 </head>
 <body>
 <div class="app-shell">
@@ -62,7 +62,7 @@
         </div>
         <div class="heading-actions">
           <button class="secondary-button" id="newProgramBtn">＋ New service plan</button>
-          <label class="secondary-button import-button">⇧ Import backup<input id="importInput" class="visually-hidden" type="file" accept=".zip,.ssbpck,.swp,.json,.txt,.xml,.csv" aria-label="Import a backup or text file"></label>
+          <label class="secondary-button import-button">⇧ Import backup<input id="importInput" class="visually-hidden" type="file" accept=".zip,.ssbpck,.swp,.json,.pptx,.txt,.xml,.csv" aria-label="Import a backup, PowerPoint, or text file"></label>
           <button class="primary-button" id="newDeckBtn"><span>＋</span> New presentation</button>
         </div>
       </div>
@@ -137,6 +137,7 @@
             <div class="canvas-orb orb-two"></div>
             <p class="canvas-kicker" id="canvasKicker">PRESENTATION</p>
             <h2 id="canvasTitle"></h2>
+            <p class="canvas-slide-footer" id="canvasSlideFooter"></p>
             <p class="canvas-footer"><span id="canvasFooter"></span> <span id="canvasCount">01</span></p>
           </div>
           <div class="canvas-toolbar" id="canvasToolbar">
@@ -237,6 +238,6 @@
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <input id="backgroundInput" type="file" accept="image/*" hidden>
-<script src="app.js?v=68"></script>
+<script src="app.js?v=71"></script>
 </body>
 </html>

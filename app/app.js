@@ -892,6 +892,17 @@ function renderEditor() {
   $('#canvasKicker').textContent = (state.deck.title + ' · ' + new Date().toLocaleDateString()).toUpperCase();
   const canvasText = slideText(slide);
   $('#canvasTitle').innerHTML = canvasText ? animatedText(canvasText, style) : '<em>New slide</em>';
+  const footer = slide && slide.footer && slide.footer.text;
+  const footerEl = $('#canvasSlideFooter');
+  if (footer) {
+    footerEl.textContent = footer;
+    footerEl.style.display = '';
+    footerEl.style.fontSize = Math.round((Number(slide.footer.style && slide.footer.style.size) || 14) * (($('#slideCanvas').clientWidth || 1280) / 1280)) + 'px';
+    footerEl.style.color = slide.footer.style && slide.footer.style.color ? slide.footer.style.color : (style.color || '#ffffff');
+  } else {
+    footerEl.textContent = '';
+    footerEl.style.display = 'none';
+  }
   $('#canvasCount').textContent = pad(state.active + 1);
   $('#canvasFooter').textContent = state.settings.ccli_license ? 'CCLI ' + state.settings.ccli_license : (config.instanceName || 'Simple Worship Presenter');
   applySlideStyle(style);
@@ -926,10 +937,14 @@ function renderInspector() {
   const slide = state.deck.slides[state.active];
   const style = slideStyle(slide);
   const isImage = slide && typeof slide === 'object';
+  const footer = slide && slide.footer || {};
   $('#inspector').innerHTML = `
     <p class="eyebrow">Slide design</p>
     <label>Slide text</label>
     <textarea id="slideEditor" rows="5" placeholder="Type slide text…">${esc(slideText(slide))}</textarea>
+
+    <label>Footer text <small>(optional)</small></label>
+    <textarea id="footerEditor" rows="2" placeholder="Small print, copyright, reference…">${esc(footer.text || '')}</textarea>
 
     <label>Font family</label>
     <select class="font-select" id="fontSelect">
@@ -943,7 +958,15 @@ function renderInspector() {
     <label>Text size</label>
     <div class="control-row">
       <input type="range" id="sizeRange" min="18" max="160" step="1" value="${Number(style.size) || 62}">
-      <output id="sizeOut">${Number(style.size) || 62}px</output>
+      <input class="size-number" type="number" id="sizeInput" min="18" max="160" step="1" value="${Number(style.size) || 62}" aria-label="Text size in points">
+      <span class="size-unit">pt</span>
+    </div>
+
+    <label>Footer size</label>
+    <div class="control-row">
+      <input type="range" id="footerSizeRange" min="8" max="80" step="1" value="${Number(footer.style && footer.style.size) || 14}">
+      <input class="size-number" type="number" id="footerSizeInput" min="8" max="80" step="1" value="${Number(footer.style && footer.style.size) || 14}" aria-label="Footer size in points">
+      <span class="size-unit">pt</span>
     </div>
 
     <label>Weight</label>
@@ -1014,13 +1037,72 @@ function renderInspector() {
     scheduleSave();
   };
 
+  const updateFooterPreview = obj => {
+    const footerEl = $('#canvasSlideFooter');
+    if (!footerEl) return;
+    const footer = obj.footer;
+    if (!footer || !footer.text) {
+      footerEl.textContent = '';
+      footerEl.style.display = 'none';
+      return;
+    }
+    const scale = ($('#slideCanvas').clientWidth || 1280) / 1280;
+    footerEl.textContent = footer.text;
+    footerEl.style.display = '';
+    footerEl.style.fontSize = Math.round((Number(footer.style && footer.style.size) || 14) * scale) + 'px';
+    footerEl.style.color = footer.style && footer.style.color ? footer.style.color : (slideStyle(obj).color || '#ffffff');
+  };
+
+  const commitFooter = (patch, { save = true } = {}) => {
+    const obj = current();
+    if (!obj.footer) obj.footer = { text: '', style: {} };
+    if (patch.text !== undefined) obj.footer.text = patch.text;
+    if (patch.size !== undefined) obj.footer.style = { ...(obj.footer.style || {}), size: patch.size };
+    if (patch.color !== undefined) obj.footer.style = { ...(obj.footer.style || {}), color: patch.color };
+    state.deck.slides[state.active] = obj;
+    updateFooterPreview(obj);
+    broadcast();
+    if (save) scheduleSave();
+  };
+
+  $('#footerEditor').oninput = e => {
+    const value = e.target.value;
+    commitFooter({ text: value }, { save: false });
+    scheduleSave();
+  };
+  const setFooterSize = raw => {
+    if (raw === '') return;
+    const value = Math.max(8, Math.min(80, Math.round(Number(raw))));
+    if (!Number.isFinite(value)) return;
+    $('#footerSizeRange').value = value;
+    $('#footerSizeInput').value = value;
+    commitFooter({ size: value }, { save: false });
+  };
+  $('#footerSizeRange').oninput = e => setFooterSize(e.target.value);
+  $('#footerSizeInput').onchange = e => {
+    if (e.target.value === '') e.target.value = Number(current().footer?.style?.size) || 14;
+    else setFooterSize(e.target.value);
+    scheduleSave();
+  };
+  $('#footerSizeInput').onkeydown = e => { if (e.key === 'Enter') e.target.blur(); };
+  $('#footerSizeRange').onchange = () => scheduleSave();
+
   $('#fontSelect').onchange = e => commitStyle({ font: e.target.value });
-  $('#sizeRange').oninput = e => {
-    const value = Number(e.target.value);
-    $('#sizeOut').textContent = value + 'px';
-    $('#canvasTitle').style.fontSize = value + 'px';
+  const setTextSize = raw => {
+    if (raw === '') return;
+    const value = Math.max(18, Math.min(160, Math.round(Number(raw))));
+    if (!Number.isFinite(value)) return;
+    $('#sizeRange').value = value;
+    $('#sizeInput').value = value;
     commitStyle({ size: value }, { save: false });
   };
+  $('#sizeRange').oninput = e => setTextSize(e.target.value);
+  $('#sizeInput').onchange = e => {
+    if (e.target.value === '') e.target.value = Number(slideStyle(current()).size) || 62;
+    else setTextSize(e.target.value);
+    scheduleSave();
+  };
+  $('#sizeInput').onkeydown = e => { if (e.key === 'Enter') e.target.blur(); };
   $('#sizeRange').onchange = () => scheduleSave();
   $('#weightToggle').onclick = e => {
     const next = Number(slideStyle(current()).weight) >= 700 ? 400 : 700;
@@ -1473,7 +1555,9 @@ function payload() {
     background: slideBg(slide),
     style: slideStyle(slide),
     kicker: (state.deck ? state.deck.title : '').toUpperCase(),
-    footer: state.settings.ccli_license ? 'CCLI ' + state.settings.ccli_license : (config.instanceName || 'Simple Worship Presenter')
+    footer: state.settings.ccli_license ? 'CCLI ' + state.settings.ccli_license : (config.instanceName || 'Simple Worship Presenter'),
+    slideFooter: slide && slide.footer ? slide.footer.text : '',
+    slideFooterStyle: slide && slide.footer ? slide.footer.style : null
   };
 }
 
@@ -1501,7 +1585,25 @@ function toggleBlank() {
   toast(state.blanked ? 'Audience display blanked' : 'Audience display restored');
 }
 
-bc.onmessage = e => { if (e.data && e.data.type === 'presenter-ready') broadcast(); };
+bc.onmessage = e => {
+  if (!e.data) return;
+  if (e.data.type === 'presenter-ready') broadcast();
+  if (e.data.type === 'presenter-command') {
+    if (e.data.action === 'next') nextSlide();
+    else if (e.data.action === 'previous') prevSlide();
+  }
+};
+
+// Same-origin fallback for browsers without BroadcastChannel.
+window.addEventListener('storage', e => {
+  if (e.key !== 'swp-live-navigation' || !e.newValue) return;
+  try {
+    const command = JSON.parse(e.newValue);
+    if (command.type !== 'presenter-command') return;
+    if (command.action === 'next') nextSlide();
+    else if (command.action === 'previous') prevSlide();
+  } catch { }
+});
 
 /* ------------------------------------------------------------- settings */
 async function loadSettings() {
@@ -2129,6 +2231,23 @@ function wire() {
     const file = e.target.files[0];
     if (!file) return;
     e.target.value = '';
+
+    // PowerPoint: convert to an editable presentation and open it.
+    const isPptx = /\.pptx$/i.test(file.name);
+    if (isPptx) {
+      toast('Importing ' + file.name + '…');
+      try {
+        const form = new FormData();
+        form.append('file', file);
+        const result = await api('/import/pptx', { method: 'POST', body: form });
+        await loadPresentations();
+        showImportSummary(file.name, result.summary, result.meta);
+        if (result.presentation) openDeck(result.presentation);
+      } catch (err) {
+        toast(err.message, 'error');
+      }
+      return;
+    }
 
     // A converted backup manifest or an archive: use the package importer so
     // songs, presentations and service plans are actually created.

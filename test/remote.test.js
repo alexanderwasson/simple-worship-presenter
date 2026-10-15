@@ -93,6 +93,24 @@ test('mobile remote pairing', async t => {
     assert.deepEqual(paired.body.allowed.sort(), ['blank', 'goto', 'next', 'previous', 'unblank']);
   });
 
+  await t.test('slide footer text and size reach the audience display state', async () => {
+    await server.api('/remote/state', {
+      method: 'POST',
+      body: {
+        title: 'Footer deck',
+        slides: [{
+          text: 'Main text',
+          footer: { text: 'Copyright notice', style: { size: 11, color: '#eeeeee' } }
+        }],
+        index: 0
+      }
+    }, cookie);
+
+    const live = await server.api('/remote/state', {}, cookie);
+    assert.equal(live.body.slide.slideFooter, 'Copyright notice');
+    assert.deepEqual(live.body.slide.slideFooterStyle, { size: 11, color: '#eeeeee' });
+  });
+
   await t.test('a pairing code cannot be used twice', async () => {
     const created = await server.api('/remote/pairing', { method: 'POST', body: {} }, cookie);
     const first = await server.api('/remote/pair', { method: 'POST', body: { code: created.body.code } });
@@ -380,6 +398,28 @@ test('websocket synchronisation', async t => {
     const state = await client.waitFor('state');
     assert.equal(state.state.count, 2);
     client.close();
+  });
+
+  await t.test('display socket previous and next commands move the audience slide', async () => {
+    await server.api('/remote/state', { method: 'POST', body: { title: 'Deck', slides: ['a', 'b'], index: 0 } }, cookie);
+    const display = openSocket(server, null, cookie);
+    await display.ready();
+    display.send({ type: 'auth', kind: 'display' });
+    await display.waitFor('authenticated');
+    await display.waitFor('state');
+
+    const nextState = display.waitFor('state');
+    display.send({ type: 'command', action: 'next' });
+    const next = await nextState;
+    assert.equal(next.state.index, 1);
+    assert.equal(next.slide.title, 'b');
+
+    const previousState = display.waitFor('state');
+    display.send({ type: 'command', action: 'previous' });
+    const previous = await previousState;
+    assert.equal(previous.state.index, 0);
+    assert.equal(previous.slide.title, 'a');
+    display.close();
   });
 
   await t.test('a remote socket drives the same state the display sees', async () => {

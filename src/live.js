@@ -78,6 +78,10 @@ function normaliseSlides(list) {
         background: String(s.background || '').slice(0, 2000000),
         name: String(s.name || '').slice(0, 200),
         style: s.style && typeof s.style === 'object' ? s.style : undefined,
+        footer: s.footer && typeof s.footer === 'object' ? {
+          text: String(s.footer.text || '').slice(0, 2000),
+          style: s.footer.style && typeof s.footer.style === 'object' ? s.footer.style : {}
+        } : undefined,
         video: s.video && typeof s.video === 'object' ? s.video : undefined
       };
     }
@@ -105,6 +109,8 @@ function slidePayload(session) {
       ?? (session.bg && session.bg.overlay !== undefined ? session.bg.overlay : undefined)
       ?? (session.bg && session.bg.video ? session.bg.video.overlay : undefined),
     style: (slide && typeof slide === 'object' ? slide.style : null) || {},
+    slideFooter: (slide && typeof slide === 'object' && slide.footer ? slide.footer.text : '') || '',
+    slideFooterStyle: (slide && typeof slide === 'object' && slide.footer ? slide.footer.style : null) || null,
     kicker: (session.title || '').toUpperCase(),
     footer: session.footer || ''
   };

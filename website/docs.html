@@ -86,9 +86,10 @@
   </ul>
 
   <h2>Importing and backing up</h2>
-  <p>Use <strong>File &rarr; Import backup&hellip;</strong> or the <strong>&#8679; Import backup</strong> button in the library. It accepts a converted backup (<code>swp-import.json</code>) or a package archive that bundles the manifest with its <code>media/</code> folder.</p>
+  <p>Use <strong>File &rarr; Import backup&hellip;</strong> or the <strong>&#8679; Import backup</strong> button in the library. It accepts a converted backup (<code>swp-import.json</code>), a package archive that bundles the manifest with its <code>media/</code> folder, or a Microsoft PowerPoint <code>.pptx</code> file.</p>
   <ul>
-    <li>Songs, presentations and service plans are all created — not just slide text.</li>
+    <li><strong>PowerPoint (.pptx)</strong> is imported as an editable presentation. Text, bullets, font styling, solid background colours and embedded images are preserved. Charts, SmartArt, gradients, animations, transitions and other complex objects are reported as warnings rather than silently dropped.</li>
+    <li>Songs, presentations and service plans are all created from a converted backup — not just slide text.</li>
     <li>Service plans are matched to the presentations that came with them.</li>
     <li>When it finishes you see exactly what was created, plus anything skipped and why.</li>
     <li>Media that is not bundled with the package is reported rather than failing the whole import.</li>
@@ -126,7 +127,7 @@
   </ul>
 
   <h2>The audience display</h2>
-  <p>Choose <strong>Tools → Audience display</strong> or the <strong>Live</strong> button. A separate window opens for the projector.</p>
+  <p>Choose <strong>Tools → Audience display</strong> or the <strong>Live</strong> button. A separate window opens for the projector. Move the pointer over the display to reveal its Previous and Next buttons; the arrow keys and Space also navigate slides.</p>
   <ul>
     <li>The control window drives it live: every slide selection is mirrored immediately.</li>
     <li><strong>Blank</strong> turns the display black without losing your place.</li>
@@ -147,7 +148,8 @@
   <p>Each slide carries its own text formatting, so a title slide and a lyric slide can look different inside the same presentation.</p>
   <ul>
     <li><strong>14 font families</strong>: Manrope, Inter, Montserrat, Poppins, Source Sans 3, Oswald, Bebas Neue, Georgia, Playfair Display, Lora, Merriweather, Libre Baskerville, Roboto Slab and DM Mono.</li>
-    <li><strong>Text size</strong> from 18 to 160 points, scaled proportionally so the editor and the projector match.</li>
+    <li><strong>Text size</strong> from 18 to 160 points, adjustable with the slider or by entering a number; it scales proportionally so the editor and projector match.</li>
+    <li><strong>Footer / small print</strong> for references, copyright notices or other supporting text. It has its own text field and size control (8–80 points), also adjustable by slider or direct number entry.</li>
     <li><strong>Weight</strong> toggle for regular or bold.</li>
     <li><strong>Text colour</strong> with a colour picker.</li>
     <li><strong>Horizontal alignment</strong>: left, centre or right.</li>

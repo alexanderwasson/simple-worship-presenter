@@ -100,12 +100,20 @@ test('presentations and service plans', async t => {
   await t.test('slides keep rich objects such as backgrounds and images', async () => {
     const created = await server.api('/presentations', {
       method: 'POST',
-      body: { title: 'Rich', slides: [{ text: 'hello', background: 'url(x)' }, 'plain'] }
+      body: {
+        title: 'Rich',
+        slides: [{
+          text: 'hello',
+          background: 'url(x)',
+          footer: { text: 'Small print', style: { size: 12, color: '#eeeeee' } }
+        }, 'plain']
+      }
     }, cookie);
     const list = await server.api('/presentations', {}, cookie);
     const found = list.body.presentations.find(p => p.id === created.body.id);
     assert.equal(typeof found.slides[0], 'object');
     assert.equal(found.slides[0].background, 'url(x)');
+    assert.deepEqual(found.slides[0].footer, { text: 'Small print', style: { size: 12, color: '#eeeeee' } });
     assert.equal(found.slides[1], 'plain');
   });
 
@@ -190,4 +198,3 @@ test('slide animations and animated backgrounds survive a save and reload', asyn
   assert.deepEqual(afterReload.slides[0].video, slides[0].video);
   assert.deepEqual(afterReload.bg, bg);
 });
-

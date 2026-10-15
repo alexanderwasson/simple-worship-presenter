@@ -229,6 +229,12 @@ function normaliseSlides(input) {
       // Typing, animation and animated backgrounds live on the slide and must
       // survive a save and reload.
       if (s.style && typeof s.style === 'object') out.style = s.style;
+      if (s.footer && typeof s.footer === 'object') {
+        out.footer = {
+          text: String(s.footer.text || '').slice(0, 2000),
+          style: s.footer.style && typeof s.footer.style === 'object' ? s.footer.style : {}
+        };
+      }
       if (s.video && typeof s.video === 'object') out.video = s.video;
       return out;
     }

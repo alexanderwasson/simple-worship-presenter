@@ -2,6 +2,41 @@
 
 All notable changes to Simple Worship Presenter are recorded here.
 
+## 0.3.9 - 2026-10-14
+
+### Added
+- **Native PowerPoint (.pptx) import.** The Import button now accepts `.pptx` files and converts
+  them into editable Simple Worship Presenter presentations. Text, bullets, font styling (size,
+  weight, colour), paragraph alignment, solid background colours and embedded images are preserved.
+  Charts, SmartArt, gradients, animations, transitions and complex shapes are reported as warnings
+  instead of being silently dropped.
+- **Slide footer / small-print box.** Imported slides split large body text from noticeably smaller
+  text (such as Bible references, version labels and copyright notices). The footer gets its own
+  text, size and colour, and is rendered below the main text in both the editor and the audience
+  display. Footer size and main text size each support both a slider and direct numeric entry.
+- A new `POST /api/import/pptx` endpoint parses the Office Open XML package, extracts referenced
+  media, validates it by magic bytes, and stores it under the user's storage quota.
+- `src/pptx.js` is a self-contained .pptx reader built on the existing `adm-zip` dependency plus
+  `fast-xml-parser`. It resolves relationships correctly, rejects path traversal and malformed
+  archives, decodes XML entities and numeric character references, and never executes macros or
+  scripts.
+
+### Changed
+- The package import media-extraction path is shared by both package and PowerPoint imports via a
+  new `importMedia()` helper, keeping quota checks and storage accounting consistent.
+- Footer text and styling survive live-state synchronization to the audience display. Footer size
+  controls update the preview without rebuilding the inspector and interrupting input.
+- Audience-display Previous/Next buttons and keyboard navigation send commands through the
+  authoritative live session, so they change the actual slide instead of only changing a counter.
+- Cache busters bumped for the changed application and presenter assets.
+- Documentation on `website/docs.html` and in `README.md` now describes PowerPoint import.
+
+### Verified
+- 198 automated tests pass (including footer and display-navigation live-state coverage): text
+  slides, formatted text and bullets, background colours, embedded image extraction and linking, unsupported-feature warnings,
+  XML entity decoding, footer/small-print separation, rejection of non-.pptx and malformed files,
+  and quota enforcement for extracted media.
+
 ## 0.3.8 - 2026-10-13
 
 ### Fixed

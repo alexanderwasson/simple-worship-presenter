@@ -53,7 +53,25 @@ let index = 0;
 let total = 0;
 let last = null;
 let bc = null;
+let displaySocket = null;
+let socketAuthenticated = false;
 try { bc = 'BroadcastChannel' in window ? new BroadcastChannel(CHANNEL) : null; } catch { bc = null; }
+
+function sendNavigation(action) {
+  if (displaySocket && displaySocket.readyState === WebSocket.OPEN && socketAuthenticated) {
+    displaySocket.send(JSON.stringify({ type: 'command', action }));
+    return;
+  }
+  const command = { type: 'presenter-command', action, at: Date.now() };
+  if (bc) {
+    bc.postMessage(command);
+  } else {
+    try { localStorage.setItem('swp-live-navigation', JSON.stringify(command)); } catch { }
+  }
+}
+
+document.getElementById('previousSlide')?.addEventListener('click', () => sendNavigation('previous'));
+document.getElementById('nextSlide')?.addEventListener('click', () => sendNavigation('next'));
 
 function receive(msg) {
   if (!msg) return;
@@ -132,6 +150,21 @@ function receive(msg) {
   titleEl.innerHTML = text ? animatedText(text, style) : '<em>Waiting for the operator…</em>';
   titleEl.classList.toggle('song', /verse|chorus|bridge/i.test(text));
 
+  const slideFooterEl = document.getElementById('slideFooter');
+  if (slideFooterEl) {
+    const footerText = String(msg.slideFooter == null ? '' : msg.slideFooter);
+    if (footerText) {
+      slideFooterEl.textContent = footerText;
+      slideFooterEl.hidden = false;
+      const fs = msg.slideFooterStyle || {};
+      slideFooterEl.style.fontSize = Math.round((Number(fs.size) || 14) * scale) + 'px';
+      slideFooterEl.style.color = fs.color || style.color || '#ffffff';
+    } else {
+      slideFooterEl.hidden = true;
+      slideFooterEl.textContent = '';
+    }
+  }
+
   if (msg.image) {
     imageEl.src = msg.image;
     imageEl.hidden = false;
@@ -167,7 +200,7 @@ try {
   if (saved) receive(JSON.parse(saved));
 } catch { }
 
-// Local preview controls so the audience window is usable on its own.
+// Keyboard controls use the same authoritative navigation as the buttons.
 window.addEventListener('keydown', e => {
   if (e.key.toLowerCase() === 'f') {
     e.preventDefault();
@@ -178,12 +211,12 @@ window.addEventListener('keydown', e => {
   if (!last) return;
   if (e.code === 'Space' || e.key === 'ArrowRight') {
     e.preventDefault();
-    if (index < total - 1) render({ ...last, index: index + 1 });
+    sendNavigation('next');
     return;
   }
   if (e.key === 'ArrowLeft') {
     e.preventDefault();
-    if (index > 0) render({ ...last, index: index - 1 });
+    sendNavigation('previous');
   }
 });
 
@@ -202,15 +235,21 @@ function connectLive() {
   } catch {
     return;
   }
+  displaySocket = socket;
+  socketAuthenticated = false;
 
   socket.onopen = () => {
     socket.send(JSON.stringify({ type: 'auth', kind: 'display' }));
-    setStatus(true);
   };
 
   socket.onmessage = event => {
     let message;
     try { message = JSON.parse(event.data); } catch { return; }
+    if (message.type === 'authenticated' && message.kind === 'display') {
+      socketAuthenticated = true;
+      setStatus(true);
+      return;
+    }
     if (message.type !== 'state') return;
 
     if (message.state && message.state.blank) {
@@ -228,6 +267,8 @@ function connectLive() {
   };
 
   socket.onclose = () => {
+    if (displaySocket === socket) displaySocket = null;
+    socketAuthenticated = false;
     setStatus(false);
     setTimeout(connectLive, 3000);
   };

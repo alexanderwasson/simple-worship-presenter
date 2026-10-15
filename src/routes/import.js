@@ -21,6 +21,7 @@ const db = require('../db');
 const log = require('../log');
 const auth = require('../auth');
 const { limiter } = require('../rateLimit');
+const { parsePptx } = require('../pptx');
 
 const router = express.Router();
 const UPLOAD_DIR = path.join(config.dataDir, 'uploads');
@@ -39,6 +40,53 @@ function safeName(name) {
   return String(name || 'file').replace(/[^\w.\- ]+/g, '_').slice(0, 120);
 }
 
+async function importMedia(req, buffer, originalName, kind, mime, summary) {
+  const bytes = buffer.length;
+  if (req.user.used_bytes + bytes > req.user.quota_bytes) {
+    summary.skipped.push({ kind: 'media', name: originalName, reason: 'storage quota exceeded' });
+    return null;
+  }
+  const stored = crypto.randomUUID();
+  const target = path.join(UPLOAD_DIR, stored);
+  try {
+    fs.writeFileSync(target, buffer);
+  } catch (err) {
+    summary.skipped.push({ kind: 'media', name: originalName, reason: 'could not be written: ' + err.message });
+    return null;
+  }
+  const row = {
+    id: db.newId(),
+    user_id: req.user.id,
+    original_name: safeName(originalName),
+    stored_name: stored,
+    mime: mime || 'application/octet-stream',
+    kind: kind === 'video' || kind === 'audio' ? kind : 'image',
+    size: bytes,
+    created_at: db.now()
+  };
+  await db.insert('media', row);
+  summary.media += 1;
+  return row;
+}
+
+function safeSlides(raw) {
+  try {
+    const parsed = JSON.parse(raw || '[]');
+    return Array.isArray(parsed) ? parsed.slice(0, 500) : [];
+  } catch {
+    return [];
+  }
+}
+
+function parseBg(raw) {
+  try {
+    const parsed = JSON.parse(raw || 'null');
+    return parsed && typeof parsed === 'object' ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
 function normaliseSlides(input) {
   if (!Array.isArray(input)) return [];
   return input.slice(0, 500).map(s => {
@@ -49,6 +97,12 @@ function normaliseSlides(input) {
       if (s.background) out.background = String(s.background).slice(0, 2000000);
       if (s.name) out.name = String(s.name).slice(0, 200);
       if (s.style && typeof s.style === 'object') out.style = s.style;
+      if (s.footer && typeof s.footer === 'object') {
+        out.footer = {
+          text: String(s.footer.text || '').slice(0, 2000),
+          style: s.footer.style && typeof s.footer.style === 'object' ? s.footer.style : {}
+        };
+      }
       if (s.video && typeof s.video === 'object') out.video = s.video;
       return out;
     }
@@ -168,33 +222,10 @@ router.post('/import/package', auth.requireAuth, upload.single('file'), async (r
       summary.skipped.push({ kind: 'media', name: wanted, reason: 'not bundled in the package' });
       continue;
     }
-    const bytes = entry.header.size;
-    if (req.user.used_bytes + bytes > req.user.quota_bytes) {
-      summary.skipped.push({ kind: 'media', name: wanted, reason: 'storage quota exceeded' });
-      continue;
-    }
-    const stored = crypto.randomUUID();
-    const target = path.join(UPLOAD_DIR, stored);
-    try {
-      fs.writeFileSync(target, entry.getData());
-    } catch (err) {
-      summary.skipped.push({ kind: 'media', name: wanted, reason: 'could not be written: ' + err.message });
-      continue;
-    }
-    const row = {
-      id: db.newId(),
-      user_id: req.user.id,
-      original_name: safeName(path.basename(wanted)),
-      stored_name: stored,
-      mime: 'application/octet-stream',
-      kind: record.kind === 'video' || record.kind === 'audio' ? record.kind : 'image',
-      size: bytes,
-      created_at: db.now()
-    };
-    await db.insert('media', row);
+    const row = await importMedia(req, entry.getData(), path.basename(wanted), record.kind, 'application/octet-stream', summary);
+    if (!row) continue;
     mediaIndex.set(wanted.toLowerCase(), row);
     mediaIndex.set(path.basename(wanted).toLowerCase(), row);
-    summary.media += 1;
   }
 
   // Songs.
@@ -277,6 +308,94 @@ router.post('/import/package', auth.requireAuth, upload.single('file'), async (r
   cleanup();
   log.info('package imported', { user: req.user.id, ...summary });
   res.json({ ok: true, summary, meta: manifest.meta });
+});
+
+// PowerPoint (.pptx) import. The file is a ZIP package of Office Open XML;
+// parse it into native slides, extract referenced images/audio/video, and
+// create a single presentation. Unsupported features are reported as warnings.
+router.post('/import/pptx', auth.requireAuth, upload.single('file'), async (req, res) => {
+  if (!req.file) return jsonError(res, 400, 'No PowerPoint file uploaded');
+  const cleanup = () => { try { fs.unlinkSync(req.file.path); } catch { } };
+
+  const ext = path.extname(req.file.originalname || '').toLowerCase();
+  let isZip = false;
+  try {
+    isZip = fs.readFileSync(req.file.path).subarray(0, 2).toString('latin1') === 'PK';
+  } catch { /* fall through to the reject below */ }
+  if (ext !== '.pptx' || !isZip) {
+    cleanup();
+    return jsonError(res, 415, 'Only PowerPoint .pptx files are supported.');
+  }
+
+  let parsed;
+  try {
+    parsed = parsePptx(fs.readFileSync(req.file.path));
+  } catch (err) {
+    cleanup();
+    return jsonError(res, 415, err.message);
+  }
+  if (!parsed.slides || !parsed.slides.length) {
+    cleanup();
+    return jsonError(res, 415, 'The presentation contains no usable slides.');
+  }
+
+  const summary = {
+    songs: 0,
+    presentations: 0,
+    programs: 0,
+    media: 0,
+    skipped: [],
+    warnings: parsed.warnings || []
+  };
+  const mediaIndex = new Map();
+
+  for (const media of parsed.media || []) {
+    const row = await importMedia(req, media.buffer, media.originalName, media.kind, media.mime, summary);
+    if (!row) continue;
+    mediaIndex.set(media.path.toLowerCase(), row);
+  }
+
+  // Replace media placeholders with real URLs before saving.
+  const slides = parsed.slides.map(s => {
+    const out = { ...s };
+    delete out.warnings;
+    if (out.background && out.background.startsWith('pptx-media://')) {
+      const p = out.background.slice('pptx-media://'.length).toLowerCase();
+      const row = mediaIndex.get(p);
+      if (row) out.background = `url("/api/media/${row.id}/file") center/cover no-repeat`;
+      else summary.warnings.push(`Background ${path.basename(p)} could not be resolved.`);
+    }
+    if (out.image && out.image.startsWith('pptx-media://')) {
+      const p = out.image.slice('pptx-media://'.length).toLowerCase();
+      const row = mediaIndex.get(p);
+      if (row) out.image = `/api/media/${row.id}/file`;
+      else summary.warnings.push(`Image ${path.basename(p)} could not be resolved.`);
+    }
+    return out;
+  });
+
+  const title = String(parsed.title || req.file.originalname.replace(/\.[^.]+$/, '') || 'Imported presentation').slice(0, 200);
+  const row = {
+    id: db.newId(),
+    user_id: req.user.id,
+    title,
+    slides_json: JSON.stringify(normaliseSlides(slides)),
+    bg_json: JSON.stringify(null),
+    created_at: db.now(),
+    updated_at: db.now()
+  };
+  await db.insert('presentations', row);
+  summary.presentations += 1;
+
+  await db.recomputeUsage(req.user.id);
+  cleanup();
+  log.info('pptx imported', { user: req.user.id, slides: slides.length, media: summary.media, warnings: summary.warnings.length });
+  res.json({
+    ok: true,
+    summary,
+    meta: { source: 'PowerPoint .pptx', slides: slides.length, dimensions: parsed.dimensions },
+    presentation: { id: row.id, title, slides: safeSlides(row.slides_json), bg: parseBg(row.bg_json) }
+  });
 });
 
 module.exports = router;

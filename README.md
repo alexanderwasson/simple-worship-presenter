@@ -27,8 +27,9 @@ media, and project lyrics to a second screen — on our hosted service or on you
   generate correctly spaced slides with verse numbers and a reference label.
 - **Animated backgrounds** — any video or animated image from your media library can back a slide or
   a whole presentation, with an adjustable overlay to keep text readable.
-- **Import and backup** — bring in a converted backup or a package archive, and get back a summary of
-  every song, presentation and service plan created, plus anything skipped and why.
+- **Import and backup** — bring in a converted backup, a package archive, or a PowerPoint `.pptx`
+  file. You get back a summary of every song, presentation and service plan created, plus anything
+  skipped and why.
 
 The software does **not** ship copyrighted song lyrics or Bible translations. Bring content you
 own or are licensed to use, and record your CCLI licence in Settings.
