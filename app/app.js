@@ -7,6 +7,28 @@ const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&a
 const lines = s => esc(s).replace(/\r?\n/g, '<br>');
 const pad = n => String(n).padStart(2, '0');
 const bytes = n => { n = Number(n) || 0; return n < 1024 ? n + ' B' : n < 1048576 ? (n / 1024).toFixed(1) + ' KB' : n < 1073741824 ? (n / 1048576).toFixed(1) + ' MB' : (n / 1073741824).toFixed(2) + ' GB'; };
+const THEME_KEY = 'swp-workspace-theme';
+
+function setTheme(theme, persist = true) {
+  const dark = theme === 'dark';
+  document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+  const button = document.getElementById('themeToggle');
+  if (button) {
+    button.textContent = dark ? '☀' : '☾';
+    button.title = dark ? 'Switch to light mode' : 'Switch to dark mode';
+    button.setAttribute('aria-label', button.title);
+    button.setAttribute('aria-pressed', String(dark));
+  }
+  if (persist) {
+    try { localStorage.setItem(THEME_KEY, dark ? 'dark' : 'light'); } catch { }
+  }
+}
+
+try {
+  const storedTheme = localStorage.getItem(THEME_KEY);
+  setTheme(storedTheme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'), false);
+} catch { setTheme('light', false); }
+
 // Storage is shown in megabytes so quotas are easy to reason about; the server
 // still stores exact bytes.
 const MB = 1048576;
@@ -26,6 +48,7 @@ const state = {
   undo: [],
   redo: [],
   blanked: false,
+  blankImage: '',
   aspect: '16:9',
   plan: null,
   query: { presentations: '', programs: '', songs: '', media: '', slides: '' }
@@ -315,14 +338,14 @@ function programEditor(program) {
     title: program.title,
     date: program.date,
     notes: program.notes || '',
-    presentation_ids: (program.presentation_ids || []).filter(id => state.presentations.some(p => p.id === id))
+    presentation_ids: (program.presentation_ids || []).filter(id => state.presentations.some(p => p.id === id)),
+    presentation_query: ''
   };
   renderProgramEditor();
 }
 
 function renderProgramEditor() {
   const d = state.planDraft;
-  const available = state.presentations.filter(p => !d.presentation_ids.includes(p.id));
   modal(`<h2>${esc(d.title)}</h2>
     <p>${esc(d.date)} · build the running order for this service</p>
 
@@ -341,11 +364,8 @@ function renderProgramEditor() {
     </div>
 
     <label class="modal-label">Add presentations</label>
-    <div class="program-choices">
-      ${available.length ? available.map(p =>
-        `<button class="program-choice add-item" data-add="${esc(p.id)}"><span>+</span><span>${esc(p.title)}</span></button>`).join('')
-        : '<p class="empty-state">Every presentation is already in this plan.</p>'}
-    </div>
+    <input class="modal-input" id="programPresentationSearch" type="search" placeholder="Search presentations to add…" value="${esc(d.presentation_query || '')}" aria-label="Search presentations to add">
+    <div class="program-choices" id="programChoices" aria-live="polite"></div>
 
     <label class="modal-label">Notes</label>
     <textarea class="modal-input" id="programNotes" rows="3">${esc(d.notes)}</textarea>
@@ -358,12 +378,35 @@ function renderProgramEditor() {
     </div>`);
 
   const sync = () => { d.notes = $('#programNotes') ? $('#programNotes').value : d.notes; };
+  const renderAvailablePresentations = () => {
+    const choices = $('#programChoices');
+    if (!choices) return;
+    const available = state.presentations.filter(p => !d.presentation_ids.includes(p.id));
+    const query = String(d.presentation_query || '').trim().toLocaleLowerCase();
+    if (!available.length) {
+      choices.innerHTML = '<p class="empty-state">Every presentation is already in this plan.</p>';
+      return;
+    }
+    const filtered = query ? available.filter(p => String(p.title || '').toLocaleLowerCase().includes(query)) : available;
+    if (!filtered.length) {
+      choices.innerHTML = '<p class="empty-state">No presentations match that search.</p>';
+      return;
+    }
+    choices.innerHTML = filtered.map(p =>
+      `<button class="program-choice add-item" data-add="${esc(p.id)}"><span>+</span><span>${esc(p.title)}</span></button>`).join('');
+    $$('[data-add]', choices).forEach(b => b.onclick = () => {
+      sync();
+      d.presentation_query = $('#programPresentationSearch').value;
+      d.presentation_ids.push(b.dataset.add);
+      renderProgramEditor();
+    });
+  };
+  $('#programPresentationSearch').oninput = e => {
+    d.presentation_query = e.target.value;
+    renderAvailablePresentations();
+  };
+  renderAvailablePresentations();
 
-  $$('#modalContent [data-add]').forEach(b => b.onclick = () => {
-    sync();
-    d.presentation_ids.push(b.dataset.add);
-    renderProgramEditor();
-  });
   $$('#modalContent [data-up]').forEach(b => b.onclick = () => {
     sync();
     const i = Number(b.dataset.up);
@@ -1332,6 +1375,7 @@ const LiveLink = {
       slides: state.deck ? state.deck.slides : [],
       title: state.deck ? state.deck.title : '',
       footer: state.settings.ccli_license ? 'CCLI ' + state.settings.ccli_license : (config.instanceName || 'Simple Worship Presenter'),
+      blank_image: state.blankImage || null,
       presentation_id: state.deck ? state.deck.id : null,
       index: state.active,
       blank: state.blanked,
@@ -1398,6 +1442,7 @@ const LiveLink = {
     if (typeof next.blank === 'boolean' && next.blank !== state.blanked) {
       state.blanked = next.blank;
     }
+    if (next.blank_image !== undefined) state.blankImage = String(next.blank_image || '');
     if (state.deck && typeof next.index === 'number' && next.index !== state.active) {
       state.active = Math.max(0, Math.min(next.index, state.deck.slides.length - 1));
       renderEditor();
@@ -1578,11 +1623,51 @@ function openPresenter() {
 }
 
 function toggleBlank() {
+  // The regular Blank command always blanks to black. The image-based action
+  // below is explicit so a previously selected image never surprises users.
+  if (!state.blanked) state.blankImage = '';
   state.blanked = !state.blanked;
-  bc.postMessage({ type: state.blanked ? 'blank' : 'unblank' });
-  try { localStorage.setItem('swp-live-command', JSON.stringify({ type: state.blanked ? 'blank' : 'unblank', at: Date.now() })); } catch { }
-  LiveLink.publish();
+  publishBlankState();
   toast(state.blanked ? 'Audience display blanked' : 'Audience display restored');
+}
+
+function publishBlankState() {
+  const command = {
+    type: state.blanked ? 'blank' : 'unblank',
+    blankImage: state.blankImage || null,
+    at: Date.now()
+  };
+  bc?.postMessage(command);
+  try { localStorage.setItem('swp-live-command', JSON.stringify(command)); } catch { }
+  LiveLink.publish();
+}
+
+function blankWithImage(mediaId) {
+  const media = state.media.find(item => item.id === mediaId && item.kind === 'image');
+  if (!media) return toast('Choose an image from your media library', 'error');
+  state.blankImage = `/api/media/${media.id}/file`;
+  state.blanked = true;
+  publishBlankState();
+  toast('Audience display blanked with image');
+}
+
+function openBlankImagePicker() {
+  const images = state.media.filter(item => item.kind === 'image');
+  modal(`
+    <h2>Blank with an image</h2>
+    <p>The selected image fills the audience display without showing the current slide. Restore returns to that slide.</p>
+    ${images.length ? `<div class="bg-picker-grid">${images.map(image => `
+      <button class="bg-picker-item blank-image-choice" data-blank-image="${esc(image.id)}">
+        <span class="bp-thumb" style="background-image:url('/api/media/${esc(image.id)}/file')"></span>
+        <small>${esc(image.original_name)}</small>
+      </button>`).join('')}</div>` : '<p class="empty-state">No images uploaded yet. Upload one in the Media library, then choose it here.</p>'}
+    <div class="modal-actions"><button class="secondary-button" id="blankImageCancel">Cancel</button></div>`);
+  $('#blankImageCancel').onclick = closeModal;
+  $$('[data-blank-image]').forEach(button => button.onclick = () => {
+    const imageId = button.dataset.blankImage;
+    closeModal();
+    blankWithImage(imageId);
+  });
 }
 
 bc.onmessage = e => {
@@ -2120,6 +2205,7 @@ const MENUS = {
     ['Connect Mobile Remote', () => openRemoteDialog()],
     ['Song library', () => showView('songs')],
     ['New service plan', () => newProgram()],
+    ['Blank with image…', () => openBlankImagePicker()],
     ['Blank audience display', () => toggleBlank()]
   ],
   Settings: [
@@ -2201,6 +2287,7 @@ function wire() {
   $('#newSongBtn').onclick = () => openSong(null);
   $('#backToLibrary').onclick = () => showView('library');
   $('#avatar').onclick = () => state.user ? showView('settings') : showAuth('login');
+  $('#themeToggle').onclick = () => setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
   $('#quickBlack').onclick = toggleBlank;
   $('#quickLive').onclick = openPresenter;
   $('#modalClose').onclick = closeModal;

@@ -7,6 +7,7 @@ const kickerEl = document.getElementById('kicker');
 const footerEl = document.getElementById('footer');
 const countEl = document.getElementById('count');
 const imageEl = document.getElementById('slideImage');
+const blankImageEl = document.getElementById('blankImage');
 const statusEl = document.getElementById('status');
 const statusText = document.getElementById('statusText');
 
@@ -70,17 +71,39 @@ function sendNavigation(action) {
   }
 }
 
+function showBlankImage(src) {
+  if (!blankImageEl) return;
+  const image = String(src || '');
+  if (!image) {
+    blankImageEl.hidden = true;
+    blankImageEl.removeAttribute('src');
+    return;
+  }
+  if (blankImageEl.getAttribute('src') !== image) blankImageEl.src = image;
+  blankImageEl.hidden = false;
+}
+
 document.getElementById('previousSlide')?.addEventListener('click', () => sendNavigation('previous'));
 document.getElementById('nextSlide')?.addEventListener('click', () => sendNavigation('next'));
 
 function receive(msg) {
   if (!msg) return;
-  if (msg.type === 'blank') { stage.classList.add('blank'); return; }
-  if (msg.type === 'unblank') { stage.classList.remove('blank'); if (last) render(last); return; }
+  if (msg.type === 'blank') {
+    stage.classList.add('blank');
+    showBlankImage(msg.blankImage !== undefined ? msg.blankImage : (last && last.blankImage));
+    return;
+  }
+  if (msg.type === 'unblank') {
+    stage.classList.remove('blank');
+    showBlankImage('');
+    if (last) render(last);
+    return;
+  }
   if (msg.type !== 'slide') return;
 
   last = msg;
   stage.classList.remove('blank');
+  showBlankImage('');
   index = typeof msg.index === 'number' ? msg.index : index;
   total = msg.count || total;
 
@@ -255,6 +278,7 @@ function connectLive() {
     if (message.state && message.state.blank) {
       stage.classList.add('blank');
       last = message.slide;
+      showBlankImage(message.slide && message.slide.blankImage);
       return;
     }
     stage.classList.remove('blank');

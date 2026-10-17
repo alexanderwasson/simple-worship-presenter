@@ -67,6 +67,7 @@ router.post('/state', auth.requireAuth, (req, res) => {
     slides: req.body.slides,
     title: req.body.title,
     footer: req.body.footer,
+    blank_image: req.body.blank_image,
     presentation_id: req.body.presentation_id,
     index: req.body.index,
     blank: req.body.blank,

@@ -300,6 +300,32 @@ test('mobile remote commands', async t => {
     assert.equal((await send('previous')).body.state.index, 0, 'cannot pass the first slide');
   });
 
+  await t.test('blank image is shown while blanked and the same slide restores', async () => {
+    const imageUrl = '/api/media/12345678-1234-1234-1234-123456789abc/file';
+    await server.api('/remote/state', {
+      method: 'POST',
+      body: { title: 'Deck', slides: ['first', 'second'], index: 1, blank_image: imageUrl }
+    }, cookie);
+
+    const blank = await server.api('/remote/command', { method: 'POST', body: { action: 'blank' } }, cookie);
+    assert.equal(blank.body.state.blank, true);
+    assert.equal(blank.body.slide.blankImage, imageUrl);
+
+    const restore = await server.api('/remote/command', { method: 'POST', body: { action: 'unblank' } }, cookie);
+    assert.equal(restore.body.state.blank, false);
+    assert.equal(restore.body.state.index, 1);
+    assert.equal(restore.body.slide.title, 'second');
+  });
+
+  await t.test('blank image only accepts same-origin media file URLs', async () => {
+    await server.api('/remote/state', {
+      method: 'POST',
+      body: { slides: ['a'], blank_image: 'https://example.com/image.png' }
+    }, cookie);
+    const state = await server.api('/remote/state', {}, cookie);
+    assert.equal(state.body.slide.blankImage, null);
+  });
+
   await t.test('goto validates the target index', async () => {
     await server.api('/remote/state', { method: 'POST', body: { title: 'Deck', slides: ['a', 'b', 'c'], index: 0 } }, cookie);
     const { result } = await pairRemote(server, cookie);

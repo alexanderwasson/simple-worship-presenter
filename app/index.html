@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@400;600;700&family=Lora:wght@400;500;600;700&family=Merriweather:wght@300;400;700&family=Libre+Baskerville:wght@400;700&family=Roboto+Slab:wght@300;400;700&family=Oswald:wght@300;400;600&family=Bebas+Neue&family=Montserrat:wght@300;400;600;800&family=Poppins:wght@300;400;600;800&family=Inter:wght@300;400;600;800&family=Source+Sans+3:wght@300;400;600;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=64">
+<link rel="stylesheet" href="styles.css?v=66">
 </head>
 <body>
 <div class="app-shell">
@@ -40,6 +40,7 @@
       </div>
       <div class="top-actions">
         <span class="save-status" id="saveStatus">● Ready</span>
+        <button class="icon-button theme-toggle" id="themeToggle" type="button" aria-label="Switch to dark mode" title="Switch to dark mode">☾</button>
         <button class="icon-button" data-modal="shortcuts" aria-label="Keyboard shortcuts">⌘</button>
         <button class="avatar" id="avatar">?</button>
       </div>
@@ -238,6 +239,6 @@
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <input id="backgroundInput" type="file" accept="image/*" hidden>
-<script src="app.js?v=71"></script>
+<script src="app.js?v=75"></script>
 </body>
 </html>

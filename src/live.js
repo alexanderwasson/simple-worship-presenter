@@ -58,6 +58,7 @@ function publicState(session) {
     // The whole service, so a phone can scroll from one song to the next.
     rundown: planRundown(session),
     blank: session.blank,
+    blank_image: session.blankImage || null,
     version: session.version,
     updated_at: session.updatedAt
   };
@@ -111,6 +112,7 @@ function slidePayload(session) {
     style: (slide && typeof slide === 'object' ? slide.style : null) || {},
     slideFooter: (slide && typeof slide === 'object' && slide.footer ? slide.footer.text : '') || '',
     slideFooterStyle: (slide && typeof slide === 'object' && slide.footer ? slide.footer.style : null) || null,
+    blankImage: session.blankImage || null,
     kicker: (session.title || '').toUpperCase(),
     footer: session.footer || ''
   };
@@ -128,6 +130,7 @@ function getState(userId) {
       slides: [],
       index: 0,
       blank: false,
+      blankImage: '',
       bg: null,
       version: 0,
       updatedAt: now(),
@@ -181,6 +184,10 @@ function publish(userId, input) {
   }
   if (typeof input.title === 'string') session.title = input.title.slice(0, 200);
   if (typeof input.footer === 'string') session.footer = input.footer.slice(0, 200);
+  if (input.blank_image !== undefined) {
+    const image = String(input.blank_image || '');
+    session.blankImage = /^\/api\/media\/[\w-]{1,100}\/file$/.test(image) ? image : '';
+  }
   if (typeof input.presentation_id === 'string') session.presentationId = input.presentation_id.slice(0, 100);
   if (input.bg !== undefined) session.bg = input.bg && typeof input.bg === 'object' ? input.bg : null;
 

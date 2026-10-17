@@ -17,7 +17,7 @@ media, and project lyrics to a second screen — on our hosted service or on you
 - **Media library** — upload images, video and audio, and use any image as a slide or
   presentation background.
 - **Presentation editor** — undo/redo, duplicate and reorder slides, 16:9 and 4:3 canvases,
-  themes, backgrounds, autosave.
+  themes, backgrounds, autosave, and a persistent light/dark workspace mode.
 - **Live audience display** — a separate projector window that follows the operator live, with
   blanking, direct slide selection and fullscreen.
 - **Mobile remote** — pair a phone by QR code and drive the service from the pews or the sound desk:

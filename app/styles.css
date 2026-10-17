@@ -322,3 +322,93 @@
 .import-summary{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:16px 0}
 .import-summary div{display:flex;justify-content:space-between;align-items:center;padding:11px 13px;background:#f7f7f3;border:1px solid var(--line);border-radius:7px}
 .import-summary span{font-size:11px;color:#77766f}.import-summary b{font:600 15px 'DM Mono';color:var(--orange)}
+
+/* ---- workspace dark mode (v0.4) ---- */
+html[data-theme=dark]{color-scheme:dark;--ink:#eceef2;--muted:#a2a7b0;--line:#383c44;--paper:#17191e;--white:#24272e}
+html[data-theme=dark] body{background:var(--paper);color:var(--ink)}
+html[data-theme=dark] .sidebar,html[data-theme=dark] .topbar,html[data-theme=dark] .control-menu{background:#202329;color:#c5c8cf;border-color:#383c44}
+html[data-theme=dark] .main-content,html[data-theme=dark] .view{background:var(--paper);color:var(--ink)}
+html[data-theme=dark] .brand,html[data-theme=dark] .crumbs strong,html[data-theme=dark] .made-by strong,html[data-theme=dark] .page-heading h1,html[data-theme=dark] .section-head h2,html[data-theme=dark] .editor-heading h1,html[data-theme=dark] .admin-head h2{color:var(--ink)}
+html[data-theme=dark] .brand span span,html[data-theme=dark] .eyebrow,html[data-theme=dark] .sidebar-label,html[data-theme=dark] .crumbs,html[data-theme=dark] .crumbs b,html[data-theme=dark] .save-status,html[data-theme=dark] .subtitle,html[data-theme=dark] .section-head p,html[data-theme=dark] .deck-info p,html[data-theme=dark] .made-by small,html[data-theme=dark] .help-link{color:#a0a5ae}
+html[data-theme=dark] .sidebar{border-right-color:#383c44}
+html[data-theme=dark] .nav-item{color:#b1b5bd}
+html[data-theme=dark] .nav-item.active,html[data-theme=dark] .stat-card,html[data-theme=dark] .deck-card,html[data-theme=dark] .song-row,html[data-theme=dark] .song-editor,html[data-theme=dark] .media-card,html[data-theme=dark] .program-card,html[data-theme=dark] .settings-panel,html[data-theme=dark] .inspector,html[data-theme=dark] .bible-chapter,html[data-theme=dark] .user-table,html[data-theme=dark] .modal,html[data-theme=dark] .search-results,html[data-theme=dark] .bg-picker-item,html[data-theme=dark] .pairing-qr,html[data-theme=dark] .device-row{background:#24272e;color:var(--ink);border-color:#3b4049}
+html[data-theme=dark] .nav-item.active,html[data-theme=dark] .search-results button:hover,html[data-theme=dark] .program-choice.add-item:hover{background:#30343d}
+html[data-theme=dark] .control-menu button,html[data-theme=dark] .secondary-button,html[data-theme=dark] .icon-button,html[data-theme=dark] .canvas-toolbar,html[data-theme=dark] .canvas-toolbar button,html[data-theme=dark] .align-group button,html[data-theme=dark] .weight-toggle,html[data-theme=dark] .bg-choice button,html[data-theme=dark] .plan-nav button,html[data-theme=dark] .order-row button,html[data-theme=dark] .u-actions button,html[data-theme=dark] .media-actions button,html[data-theme=dark] .media-toolbar button,html[data-theme=dark] .program-toolbar button,html[data-theme=dark] .section-editor-head button,html[data-theme=dark] .menu-list button{background:#2a2e36;color:#d5d8de;border-color:#454a54}
+html[data-theme=dark] .primary-button{color:#fff}
+html[data-theme=dark] .control-menu button:last-child{color:#f0a18a}
+html[data-theme=dark] .control-room-lower,html[data-theme=dark] .room-panel,html[data-theme=dark] .room-tabs{background:#22252b;color:#c3c7ce;border-color:#3b4048}
+html[data-theme=dark] .room-tabs b,html[data-theme=dark] .queue-row{color:#d0d3d9}
+html[data-theme=dark] .media-toolbar,html[data-theme=dark] .program-toolbar,html[data-theme=dark] .queue-row,html[data-theme=dark] .user-row{border-color:#383c44}
+html[data-theme=dark] .queue-row:hover,html[data-theme=dark] .tree-file:hover,html[data-theme=dark] .program-slides button:hover{background:#30343d;color:#e2e4e8}
+html[data-theme=dark] .tree-row.active{background:#293642}
+html[data-theme=dark] .queue-row.live{background:#27362d;color:#d6e8d9}
+html[data-theme=dark] .program-library,html[data-theme=dark] .program-rail,html[data-theme=dark] .plan-bar,html[data-theme=dark] .up-next,html[data-theme=dark] .order-row,html[data-theme=dark] .program-choice,html[data-theme=dark] .section-editor,html[data-theme=dark] .empty-state,html[data-theme=dark] .empty-filter,html[data-theme=dark] .font-preview,html[data-theme=dark] .bible-preview-slide,html[data-theme=dark] .bible-result{background:#202329;color:#d5d8de;border-color:#383c44}
+html[data-theme=dark] .program-card strong,html[data-theme=dark] .order-row span,html[data-theme=dark] .plan-bar-head strong,html[data-theme=dark] .up-next strong,html[data-theme=dark] .bible-verse,html[data-theme=dark] .bible-result span,html[data-theme=dark] .bible-preview-slide span{color:#e1e3e8}
+html[data-theme=dark] .user-row-head,html[data-theme=dark] .room-tabs,html[data-theme=dark] .bible-book-btn:hover,html[data-theme=dark] .bible-verse:hover{background:#2b2f37}
+html[data-theme=dark] .bible-book-btn{color:#c5c8cf}
+html[data-theme=dark] .bible-book-btn.on,html[data-theme=dark] .bible-verse.on,html[data-theme=dark] .align-group button.active,html[data-theme=dark] .weight-toggle.active,html[data-theme=dark] .bg-picker-item.on{background:#3a2b28;color:#f0a18a}
+html[data-theme=dark] .bible-heading{color:#d2a889}
+html[data-theme=dark] input:not([type=range]):not([type=color]),html[data-theme=dark] textarea,html[data-theme=dark] select,html[data-theme=dark] .modal-input,html[data-theme=dark] .font-select,html[data-theme=dark] .search-input,html[data-theme=dark] .global-search input,html[data-theme=dark] .user-row input,html[data-theme=dark] .user-row select,html[data-theme=dark] .slide-editor-input{background:#191c21;color:#e5e7eb;border-color:#454a54}
+html[data-theme=dark] input::placeholder,html[data-theme=dark] textarea::placeholder{color:#858b95}
+html[data-theme=dark] .menu-dropdown{background:#24272e;border-color:#454a54;box-shadow:0 8px 20px #0008}
+html[data-theme=dark] .menu-dropdown button{background:#24272e!important;color:#d5d8de!important}
+html[data-theme=dark] .menu-dropdown button:hover{background:#30343d!important;color:#f0a18a!important}
+html[data-theme=dark] .search-results button{color:#d5d8de}
+html[data-theme=dark] .search-results button:hover{background:#2b2f37}
+html[data-theme=dark] .tip-banner{background:#2b2925;color:#d4c7b6}
+html[data-theme=dark] .tip-banner kbd,html[data-theme=dark] .shortcut-list kbd,html[data-theme=dark] .restart-notice code{background:#30343b;color:#e3e5e9;border-color:#454a54}
+html[data-theme=dark] .modal p,html[data-theme=dark] .modal-label,html[data-theme=dark] .setting small,html[data-theme=dark] .setting input,html[data-theme=dark] .inspector label,html[data-theme=dark] .control-row .size-unit,html[data-theme=dark] .unit-label,html[data-theme=dark] .mono-label,html[data-theme=dark] .shortcut-list div,html[data-theme=dark] .bible-book-btn small{color:#a2a7b0}
+html[data-theme=dark] .modal-close,html[data-theme=dark] .more-button,html[data-theme=dark] .new-card,html[data-theme=dark] .new-card strong{color:#a2a7b0}
+html[data-theme=dark] .version-pill{background:#382923;border-color:#5b3c31;color:#f0a18a}
+html[data-theme=dark] .restart-notice,html[data-theme=dark] .auth-error{background:#382724;border-color:#624038;color:#f0b6a5}
+html[data-theme=dark] .import-summary div{background:#202329;border-color:#383c44}
+html[data-theme=dark] .import-summary span{color:#c0c4cb}
+html[data-theme=dark] .setting{border-color:#383c44}
+html[data-theme=dark] .quota-bar{background:#383c44}
+html[data-theme=dark] .theme-toggle{color:#ffd36b}
+
+/* ---- workspace dark mode (v0.4) ---- */
+html[data-theme=dark]{color-scheme:dark;--ink:#eceef2;--muted:#a2a7b0;--line:#383c44;--paper:#17191e;--white:#24272e}
+html[data-theme=dark] body{background:var(--paper);color:var(--ink)}
+html[data-theme=dark] .sidebar,html[data-theme=dark] .topbar,html[data-theme=dark] .control-menu{background:#202329;color:#c5c8cf;border-color:#383c44}
+html[data-theme=dark] .main-content,html[data-theme=dark] .view{background:var(--paper);color:var(--ink)}
+html[data-theme=dark] .brand,html[data-theme=dark] .crumbs strong,html[data-theme=dark] .made-by strong,html[data-theme=dark] .page-heading h1,html[data-theme=dark] .section-head h2,html[data-theme=dark] .editor-heading h1,html[data-theme=dark] .admin-head h2{color:var(--ink)}
+html[data-theme=dark] .brand span span,html[data-theme=dark] .brand span span,html[data-theme=dark] .eyebrow,html[data-theme=dark] .sidebar-label,html[data-theme=dark] .crumbs,html[data-theme=dark] .crumbs b,html[data-theme=dark] .save-status,html[data-theme=dark] .subtitle,html[data-theme=dark] .section-head p,html[data-theme=dark] .deck-info p,html[data-theme=dark] .made-by small,html[data-theme=dark] .help-link{color:#a0a5ae}
+html[data-theme=dark] .sidebar{border-right-color:#383c44}
+html[data-theme=dark] .nav-item{color:#b1b5bd}
+html[data-theme=dark] .nav-item.active,html[data-theme=dark] .stat-card,html[data-theme=dark] .deck-card,html[data-theme=dark] .song-row,html[data-theme=dark] .song-editor,html[data-theme=dark] .media-card,html[data-theme=dark] .program-card,html[data-theme=dark] .settings-panel,html[data-theme=dark] .inspector,html[data-theme=dark] .bible-chapter,html[data-theme=dark] .user-table,html[data-theme=dark] .modal,html[data-theme=dark] .search-results,html[data-theme=dark] .bg-picker-item,html[data-theme=dark] .pairing-qr,html[data-theme=dark] .device-row{background:#24272e;color:var(--ink);border-color:#3b4049}
+html[data-theme=dark] .nav-item.active,html[data-theme=dark] .search-results button:hover,html[data-theme=dark] .program-choice.add-item:hover{background:#30343d}
+html[data-theme=dark] .control-menu button,html[data-theme=dark] .secondary-button,html[data-theme=dark] .icon-button,html[data-theme=dark] .canvas-toolbar,html[data-theme=dark] .canvas-toolbar button,html[data-theme=dark] .align-group button,html[data-theme=dark] .weight-toggle,html[data-theme=dark] .bg-choice button,html[data-theme=dark] .plan-nav button,html[data-theme=dark] .order-row button,html[data-theme=dark] .u-actions button,html[data-theme=dark] .media-actions button,html[data-theme=dark] .media-toolbar button,html[data-theme=dark] .program-toolbar button,html[data-theme=dark] .section-editor-head button,html[data-theme=dark] .menu-list button{background:#2a2e36;color:#d5d8de;border-color:#454a54}
+html[data-theme=dark] .primary-button{color:#fff}
+html[data-theme=dark] .control-menu button:last-child{color:#f0a18a}
+html[data-theme=dark] .control-room-lower,html[data-theme=dark] .room-panel,html[data-theme=dark] .room-tabs{background:#22252b;color:#c3c7ce;border-color:#3b4048}
+html[data-theme=dark] .room-tabs b,html[data-theme=dark] .queue-row{color:#d0d3d9}
+html[data-theme=dark] .media-toolbar,html[data-theme=dark] .program-toolbar,html[data-theme=dark] .queue-row,html[data-theme=dark] .user-row{border-color:#383c44}
+html[data-theme=dark] .queue-row:hover,html[data-theme=dark] .tree-file:hover,html[data-theme=dark] .program-slides button:hover{background:#30343d;color:#e2e4e8}
+html[data-theme=dark] .tree-row.active{background:#293642}
+html[data-theme=dark] .queue-row.live{background:#27362d;color:#d6e8d9}
+html[data-theme=dark] .program-library,html[data-theme=dark] .program-rail,html[data-theme=dark] .plan-bar,html[data-theme=dark] .up-next,html[data-theme=dark] .running-order,html[data-theme=dark] .order-row,html[data-theme=dark] .program-choice,html[data-theme=dark] .section-editor,html[data-theme=dark] .empty-state,html[data-theme=dark] .empty-filter,html[data-theme=dark] .font-preview,html[data-theme=dark] .bible-preview-slide,html[data-theme=dark] .bible-result{background:#202329;color:#d5d8de;border-color:#383c44}
+html[data-theme=dark] .program-card strong,html[data-theme=dark] .order-row span,html[data-theme=dark] .plan-bar-head strong,html[data-theme=dark] .up-next strong,html[data-theme=dark] .bible-verse,html[data-theme=dark] .bible-result span,html[data-theme=dark] .bible-preview-slide span{color:#e1e3e8}
+html[data-theme=dark] .user-row-head,html[data-theme=dark] .user-row-head,html[data-theme=dark] .room-tabs,html[data-theme=dark] .bible-book-btn:hover,html[data-theme=dark] .bible-verse:hover{background:#2b2f37}
+html[data-theme=dark] .bible-book-btn{color:#c5c8cf}
+html[data-theme=dark] .bible-book-btn.on,html[data-theme=dark] .bible-verse.on,html[data-theme=dark] .align-group button.active,html[data-theme=dark] .weight-toggle.active,html[data-theme=dark] .bg-picker-item.on{background:#3a2b28;color:#f0a18a}
+html[data-theme=dark] .bible-heading{color:#d2a889}
+html[data-theme=dark] input:not([type=range]):not([type=color]),html[data-theme=dark] textarea,html[data-theme=dark] select,html[data-theme=dark] .modal-input,html[data-theme=dark] .font-select,html[data-theme=dark] .search-input,html[data-theme=dark] .global-search input,html[data-theme=dark] .user-row input,html[data-theme=dark] .user-row select,html[data-theme=dark] .slide-editor-input{background:#191c21;color:#e5e7eb;border-color:#454a54}
+html[data-theme=dark] input::placeholder,html[data-theme=dark] textarea::placeholder{color:#858b95}
+html[data-theme=dark] .menu-dropdown{background:#24272e;border-color:#454a54;box-shadow:0 8px 20px #0008}
+html[data-theme=dark] .menu-dropdown button{background:#24272e!important;color:#d5d8de!important}
+html[data-theme=dark] .menu-dropdown button:hover{background:#30343d!important;color:#f0a18a!important}
+html[data-theme=dark] .search-results button{color:#d5d8de}
+html[data-theme=dark] .search-results button:hover,html[data-theme=dark] .empty-filter{background:#2b2f37}
+html[data-theme=dark] .tip-banner{background:#2b2925;color:#d4c7b6}
+html[data-theme=dark] .tip-banner kbd,html[data-theme=dark] .shortcut-list kbd,html[data-theme=dark] .restart-notice code{background:#30343b;color:#e3e5e9;border-color:#454a54}
+html[data-theme=dark] .modal p,html[data-theme=dark] .modal-label,html[data-theme=dark] .setting small,html[data-theme=dark] .setting input,html[data-theme=dark] .inspector label,html[data-theme=dark] .control-row .size-unit,html[data-theme=dark] .unit-label,html[data-theme=dark] .mono-label,html[data-theme=dark] .shortcut-list div,html[data-theme=dark] .bible-book-btn small{color:#a2a7b0}
+html[data-theme=dark] .modal-close,html[data-theme=dark] .more-button,html[data-theme=dark] .new-card,html[data-theme=dark] .new-card strong{color:#a2a7b0}
+html[data-theme=dark] .version-pill{background:#382923;border-color:#5b3c31;color:#f0a18a}
+html[data-theme=dark] .restart-notice,html[data-theme=dark] .auth-error{background:#382724;border-color:#624038;color:#f0b6a5}
+html[data-theme=dark] .import-summary div{background:#202329;border-color:#383c44}
+html[data-theme=dark] .import-summary span{color:#c0c4cb}
+html[data-theme=dark] .setting{border-color:#383c44}
+html[data-theme=dark] .quota-bar{background:#383c44}
+html[data-theme=dark] .theme-toggle{color:#ffd36b}

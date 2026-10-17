@@ -2,6 +2,25 @@
 
 All notable changes to Simple Worship Presenter are recorded here.
 
+## 0.4.0 - 2026-10-15
+
+### Added
+- **Search presentations while editing a service plan.** The "Add presentations" section now has a
+  live title filter, making it easier to find a deck in a large library. The search remains focused
+  as results update and is preserved when adding a presentation or reordering the plan.
+- **Blank the audience display with an image.** Choose an image from your media library in
+  Tools → Blank with image. The slide is hidden while the image is shown, and Restore returns to
+  the same slide. The regular Blank action continues to show black.
+- **Dark mode.** Switch the workspace between light and dark from the top bar. The choice is saved
+  in this browser and follows the operating-system preference until changed.
+
+### Verified
+- `npm run test:all`: 200 passed, 0 failed. Browser check confirmed the theme toggle changes the
+  workspace palette and the chosen theme survives a reload.
+
+### Verified
+- `npm run test:all`: 200 passed, 0 failed, including blank-image validation and restore-to-current-slide coverage.
+
 ## 0.3.9 - 2026-10-14
 
 ### Added

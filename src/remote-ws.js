@@ -86,6 +86,7 @@ function attach(server, config) {
       slides: message.slides,
       title: message.title,
       footer: message.footer,
+      blank_image: message.blank_image,
       presentation_id: message.presentation_id,
       index: message.index,
       blank: message.blank,
